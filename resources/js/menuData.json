@@ -1,0 +1,62 @@
+[
+  {
+    "img": "images/menu/thumbs/11.png",
+    "name": "Especialidades del Chef",
+    "description": "Disfruta de recetas creativas, ingredientes frescos y sabores originales para sorprenderte",
+    "href": "/menu/especialidades-del-chef"
+  },
+  {
+    "img": "images/menu/thumbs/1.png",
+    "name": "Desayunos todo el día",
+    "description": "Tu desayuno favorito, waffles, pancakes, croissants, desayuno panameño, hojaldres y mucho más",
+    "href": "/menu/desayunos-todo-el-dia"
+  },
+  {
+    "img": "images/menu/thumbs/2.png",
+    "name": "Para Compartir",
+    "description": "Disfruta con amigos: frituras, patacones, wings, chorizos y más. ¡momento único garantizado!",
+    "href": "/menu/para-compartir"
+  },
+  {
+    "img": "images/menu/thumbs/3.png",
+    "name": "Sandwiches & Burgers",
+    "description": "Los clásicos que te encantan y las creaciones de la casa. tienes que probar nuestra veggie burger",
+    "href": "/menu/sandwiches-y-burgers"
+  },
+  {
+    "img": "images/menu/thumbs/4.png",
+    "name": "Lunch & Dinner",
+    "description": "Deliciosos platos preparados con amor que harán que te sientas como en casa",
+    "href": "/menu/lunch-y-dinner"
+  },
+  {
+    "img": "images/menu/thumbs/5.png",
+    "name": "Salad Bowls",
+    "description": "Tu opción healthy. Ármalo a tu gusto eligiendo tu proteína, vegetales y toppings favoritos",
+    "href": "/menu/salad-bowls"
+  },
+  {
+    "img": "images/menu/thumbs/6.png",
+    "name": "Kids Menu",
+    "description": "Los clásicos preferidos por los niños. Crujientes chicken fingers y sabrosas mini burgers",
+    "href": "/menu/kids-menu"
+  },
+  {
+    "img": "images/menu/thumbs/7.png",
+    "name": "Café y Bebidas Calientes",
+    "description": "Deléitate con café de especialidad 100% panameño, un chocolate caliente o un chai latte",
+    "href": "/menu/cafe-y-bebidas-calientes"
+  },
+  {
+    "img": "images/menu/thumbs/8.png",
+    "name": "Cold Drinks & Fresh",
+    "description": "Disfruta nuestros ricos frappés y cold brew todos con sabores deliciosos que te encantarán",
+    "href": "/menu/cold-drinks-and-fresh"
+  },
+  {
+    "img": "images/menu/thumbs/9.png",
+    "name": "Tosto Bar",
+    "description": "Brinda por la vida con una amplia selección vinos, cócteles artesanales, kombucha y cervezas.",
+    "href": "/menu/tosto-bar"
+  }
+]

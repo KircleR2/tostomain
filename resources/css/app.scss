@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
+
+@font-face {
+  font-family: 'Bebas Neue';
+  src: url('../fonts/BebasNeue-Regular.woff');
+}
+
+@font-face {
+  font-family: 'Hey August';
+  src: url('../fonts/Hey-August.woff');
+}
+
+@layer base {
+  html {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+  }
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .btn-action {
+    @apply bg-[#F89C24] hover:bg-[#E89223] text-white py-2 px-4 font-action;
+    &:hover {
+      color: white !important;
+    }
+  }
+  .menu {
+    @apply absolute z-50 w-full;
+  }
+  .nav-secondary {
+     @apply bg-white shadow-md z-50 w-full;
+  }
+  .menu-fixed {
+    @apply bg-white shadow-md fixed z-50 w-full;
+  }
+  .menu-dashboard {
+    @apply bg-white shadow-md fixed z-50 w-full;
+  }
+  .main-menu a {
+    @apply hover:text-[#E89223];
+  }
+}
+
+
+.clip-menu-image {
+  -webkit-clip-path: url(#menuPath);
+  clip-path: url(#menuPath);
+}
+
+.coffee-cup {
+  -webkit-filter: drop-shadow(10px 10px 10px rgba(34, 34, 34, 0.1));
+  filter: drop-shadow(10px 10px 10px rgba(34, 34, 34, 0.1));
+}
+
+.link-active {
+  color: #F89C24;
+}
