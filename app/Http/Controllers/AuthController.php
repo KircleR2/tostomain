@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -20,9 +22,20 @@ class AuthController extends Controller
     {
         return view('back.recovery-password');
     }
-    public function logout()
+    
+    public function logout(Request $request)
     {
-        Session::remove('clauToken');
+        // Log before logout
+        Log::debug('Logging out user', [
+            'has_session' => $request->hasSession(),
+            'token_exists' => $request->session()->has('clauToken'),
+            'session_id' => $request->session()->getId()
+        ]);
+        
+        // Remove token from session
+        $request->session()->forget('clauToken');
+        $request->session()->save();
+        
         return redirect(route('auth.login'));
     }
 }

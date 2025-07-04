@@ -7,6 +7,7 @@ use App\Services\ClauService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class ApiAuthController extends Controller
@@ -34,12 +35,23 @@ class ApiAuthController extends Controller
             $responseData = $response->json();
 
             if (isset($responseData['codigoRespuesta']) && $responseData['codigoRespuesta'] === 0) {
+                // Store token in session
                 $request->session()->put('clauToken', $responseData['token']);
+                
+                // Force session save
+                $request->session()->save();
+                
+                // Log for debugging
+                Log::debug('Login successful, token stored in session', [
+                    'has_session' => $request->hasSession(),
+                    'session_id' => $request->session()->getId(),
+                    'token_stored' => !empty($responseData['token'])
+                ]);
+                
                 return response()->json([
                     'code' => 0,
                     'message' => 'Haz iniciado sesión correctamente',
                 ])->setStatusCode(Response::HTTP_OK);
-
             }
 
             return response()->json([
