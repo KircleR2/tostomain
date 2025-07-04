@@ -32,9 +32,17 @@ class AppServiceProvider extends ServiceProvider
         
         // Configure trusted proxies
         if (config('trustedproxy.proxies')) {
+            // Handle both "*" wildcard and specific IPs
+            $proxies = config('trustedproxy.proxies') === '*' ? ['0.0.0.0/0', '::/0'] : config('trustedproxy.proxies');
+            
+            // Set trusted proxies
             Request::setTrustedProxies(
-                config('trustedproxy.proxies') === '*' ? ['0.0.0.0/0', '::/0'] : config('trustedproxy.proxies'), 
-                config('trustedproxy.headers')
+                $proxies,
+                Request::HEADER_X_FORWARDED_FOR |
+                Request::HEADER_X_FORWARDED_HOST |
+                Request::HEADER_X_FORWARDED_PORT |
+                Request::HEADER_X_FORWARDED_PROTO |
+                Request::HEADER_X_FORWARDED_AWS_ELB
             );
         }
     }
