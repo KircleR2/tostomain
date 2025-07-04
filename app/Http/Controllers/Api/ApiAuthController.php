@@ -35,23 +35,37 @@ class ApiAuthController extends Controller
             $responseData = $response->json();
 
             if (isset($responseData['codigoRespuesta']) && $responseData['codigoRespuesta'] === 0) {
+                // Check if session exists
+                if (!$request->hasSession()) {
+                    Log::error('No session available in API login');
+                    return response()->json([
+                        'code' => 500,
+                        'message' => 'Session not available',
+                    ])->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
+                }
+                
                 // Store token in session
                 $request->session()->put('clauToken', $responseData['token']);
                 
                 // Force session save
                 $request->session()->save();
                 
+                // Set cookie manually as backup
+                $cookie = cookie('clau_token', $responseData['token'], 120, '/', null, true, false);
+                
                 // Log for debugging
                 Log::debug('Login successful, token stored in session', [
                     'has_session' => $request->hasSession(),
                     'session_id' => $request->session()->getId(),
-                    'token_stored' => !empty($responseData['token'])
+                    'token_stored' => !empty($responseData['token']),
+                    'session_driver' => config('session.driver'),
+                    'cookie_set' => true
                 ]);
                 
                 return response()->json([
                     'code' => 0,
                     'message' => 'Haz iniciado sesión correctamente',
-                ])->setStatusCode(Response::HTTP_OK);
+                ])->setStatusCode(Response::HTTP_OK)->withCookie($cookie);
             }
 
             return response()->json([

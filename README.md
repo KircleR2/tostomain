@@ -64,3 +64,69 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+# Tosto Coffee App
+
+## Session Persistence Fix for DigitalOcean App Platform
+
+To fix the login redirect loop issue on DigitalOcean App Platform, the following changes have been made:
+
+1. Updated CORS configuration to support credentials
+2. Added the DigitalOcean App Platform domain to Sanctum's stateful domains
+3. Changed session driver from cookie to database
+4. Added a migration for the sessions table
+5. Enhanced middleware to check for both session token and backup cookie
+6. Added better error handling and debugging
+7. Updated API routes to ensure proper session handling
+
+### Deployment Instructions
+
+1. **Run Database Migration**
+
+   After deploying to DigitalOcean App Platform, run the migration to create the sessions table:
+
+   ```
+   php artisan migrate
+   ```
+
+2. **Environment Variables**
+
+   Add the following environment variables in the DigitalOcean App Platform dashboard:
+
+   ```
+   SESSION_DRIVER=database
+   SESSION_LIFETIME=120
+   SESSION_SECURE_COOKIE=true
+   SESSION_DOMAIN=tostomain-achxn.ondigitalocean.app
+   SESSION_SAME_SITE=lax
+   TRUSTED_PROXIES=*
+   SANCTUM_STATEFUL_DOMAINS=tostomain-achxn.ondigitalocean.app
+   ```
+
+3. **Clear Cache**
+
+   After deploying, clear the cache:
+
+   ```
+   php artisan config:clear
+   php artisan cache:clear
+   php artisan route:clear
+   ```
+
+4. **Verify Logs**
+
+   Check the logs for any session-related issues:
+
+   ```
+   php artisan log:tail
+   ```
+
+### Troubleshooting
+
+If issues persist:
+
+1. Check that the sessions table was created successfully
+2. Verify that the environment variables are set correctly
+3. Ensure that the database connection is working properly
+4. Check the logs for any errors related to session handling
+5. Clear browser cookies and try again

@@ -67,6 +67,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'clau.auth' => \App\Http\Middleware\ClauTokenMiddleware::class,
-        'clau.redirect' => \App\Http\Middleware\RedirectIdClauTokenMiddleware::class
+        'clau.redirect' => \App\Http\Middleware\RedirectIdClauTokenMiddleware::class,
+        'session' => \Illuminate\Session\Middleware\StartSession::class,
     ];
 }
