@@ -15,7 +15,17 @@ const loginData = reactive({ ...loginInitialState })
 
 onMounted(() => {
   fetchLogin.value = false
+  // Fetch CSRF token on component mount
+  fetchCsrfToken()
 })
+
+// Function to fetch CSRF token
+function fetchCsrfToken() {
+  axios.get('/sanctum/csrf-cookie')
+    .catch(error => {
+      console.error('Error fetching CSRF token:', error)
+    })
+}
 
 function resetForm() {
   Object.assign(loginData, loginInitialState)
@@ -37,21 +47,33 @@ function login () {
   }
 
   fetchLogin.value = true
-  setTimeout(() => {
-    axios.post('/api/login', loginData)
-    .then(response => {
-      fetchLogin.value = false
-      if (response.data.code === 0) {
-        window.location.href = '/dashboard'
-      } else {
-        showError(response.data?.message)
-      }
+  
+  // First get CSRF token, then submit form
+  axios.get('/sanctum/csrf-cookie')
+    .then(() => {
+      setTimeout(() => {
+        axios.post('/api/login', loginData, {
+          withCredentials: true // Ensure cookies are sent with the request
+        })
+        .then(response => {
+          fetchLogin.value = false
+          if (response.data.code === 0) {
+            window.location.href = '/dashboard'
+          } else {
+            showError(response.data?.message || 'Error al iniciar sesión. Intente nuevamente.')
+          }
+        })
+        .catch(err => {
+          fetchLogin.value = false
+          showError(err?.response?.data?.message || 'Error al iniciar sesión. Intente nuevamente.')
+        })
+      }, 1500)
     })
-    .catch(err => {
+    .catch(error => {
       fetchLogin.value = false
-      showError(err?.response?.data?.message)
+      showError('Error de conexión. Intente nuevamente.')
+      console.error('CSRF token error:', error)
     })
-  }, 1500)
 }
 
 </script>

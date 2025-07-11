@@ -1,13 +1,13 @@
 # CSRF Token Mismatch Fix for Digital Ocean
 
-This document provides instructions for fixing the CSRF token mismatch error that occurs during user registration on the Digital Ocean App Platform.
+This document provides instructions for fixing the CSRF token mismatch error that occurs during user registration and login on the Digital Ocean App Platform.
 
 ## Changes Made
 
-1. Updated the Vue.js registration form to fetch the CSRF token before submitting the form
+1. Updated the Vue.js registration and login forms to fetch the CSRF token before submitting the form
 2. Added `withCredentials: true` to axios requests to ensure cookies are sent
 3. Updated the axios configuration in bootstrap.js to include credentials by default
-4. Temporarily excluded the `/api/register` endpoint from CSRF verification (for debugging)
+4. Temporarily excluded the `/api/register` and `/api/login` endpoints from CSRF verification (for debugging)
 5. Updated the TrustProxies middleware to trust all proxies
 
 ## Deployment Instructions
@@ -77,8 +77,8 @@ If the issue persists:
 
 5. **Remove CSRF Exception**
 
-   Once the issue is resolved, remove the temporary exception from the VerifyCsrfToken middleware.
+   Once the issue is resolved, remove the temporary exceptions from the VerifyCsrfToken middleware.
 
 ## Long-term Solution
 
-The temporary exclusion of the `/api/register` endpoint from CSRF verification is not recommended for production. Once you confirm that the other fixes are working, remove this exception and ensure proper CSRF token handling. 
+The temporary exclusion of the `/api/register` and `/api/login` endpoints from CSRF verification is not recommended for production. Once you confirm that the other fixes are working, remove these exceptions and ensure proper CSRF token handling. 
