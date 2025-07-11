@@ -76,7 +76,7 @@ class FrontController extends Controller
 
         App::setLocale($locale);
         Session::put('locale', $locale);
-        return redirect()->back()->withCookie(cookie('locale', $locale, 1440));
+        return redirect()->back()->withCookie(cookie('locale', $locale, 1440, '/'));
     }
 
     public function new_branch ()
