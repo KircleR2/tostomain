@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ClauService
 {
@@ -21,6 +22,12 @@ class ClauService
         $this->API_KEY_PROVIDER = config('clau.apikey_provider');
         $this->APPID = config('clau.appid');
         $this->ORIGIN = config('clau.origin');
+        
+        Log::debug('ClauService initialized', [
+            'api_url' => $this->API_URL,
+            'appid' => $this->APPID,
+            'origin' => $this->ORIGIN
+        ]);
     }
 
     public function login ($email, $password)
@@ -31,13 +38,37 @@ class ClauService
             'apikey' => $this->API_AUTH_KEY,
             'apikeyProvider' => $this->API_KEY_PROVIDER,
         ];
+        
+        $url = config('clau.api_url') . '/ext/v2/iniciar_sesion_ext';
+        
+        Log::debug('ClauService login request', [
+            'url' => $url,
+            'email' => $email,
+            'headers' => array_keys($headers)
+        ]);
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/iniciar_sesion_ext', [
-                'email' => $email,
-                'password' => $password
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders($headers)
+                ->post($url, [
+                    'email' => $email,
+                    'password' => $password
+                ]);
+                
+            Log::debug('ClauService login response', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'body_preview' => substr($response->body(), 0, 100) . '...'
             ]);
+            
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('ClauService login exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
     public function register($register_data) {
@@ -60,10 +91,34 @@ class ClauService
         if (isset($register_data['ref'])) {
             $data['usuarioCodigoReferido'] = $register_data['ref'];
         }
+        
+        $url = config('clau.api_url') . '/ext/registro/registro_api';
+        
+        Log::debug('ClauService register request', [
+            'url' => $url,
+            'email' => $register_data['email'],
+            'headers' => array_keys($headers)
+        ]);
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/registro/registro_api', $data);
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders($headers)
+                ->post($url, $data);
+                
+            Log::debug('ClauService register response', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'body_preview' => substr($response->body(), 0, 100) . '...'
+            ]);
+            
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('ClauService register exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
     public function getUserData ($token)
@@ -73,12 +128,36 @@ class ClauService
             'APPID' => $this->APPID,
             'apikey' => $this->API_AUTH_KEY,
         ];
+        
+        $url = config('clau.api_url') . '/ext/v2/consultar_informacion_usuario_ext';
+        
+        Log::debug('ClauService getUserData request', [
+            'url' => $url,
+            'token_length' => strlen($token),
+            'headers' => array_keys($headers)
+        ]);
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/consultar_informacion_usuario_ext', [
-                'token' => $token
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders($headers)
+                ->post($url, [
+                    'token' => $token
+                ]);
+                
+            Log::debug('ClauService getUserData response', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'body_preview' => substr($response->body(), 0, 100) . '...'
             ]);
+            
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('ClauService getUserData exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
     public function getStorePoints ($token)
@@ -88,12 +167,36 @@ class ClauService
             'APPID' => $this->APPID,
             'apikey' => $this->API_AUTH_KEY,
         ];
+        
+        $url = config('clau.api_url') . '/ext/v2/consulta_tienda_de_puntos_ext';
+        
+        Log::debug('ClauService getStorePoints request', [
+            'url' => $url,
+            'token_length' => strlen($token),
+            'headers' => array_keys($headers)
+        ]);
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/consulta_tienda_de_puntos_ext', [
-                'token' => $token
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders($headers)
+                ->post($url, [
+                    'token' => $token
+                ]);
+                
+            Log::debug('ClauService getStorePoints response', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'body_preview' => substr($response->body(), 0, 100) . '...'
             ]);
+            
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('ClauService getStorePoints exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
     public function buyProduct ($token, $productId)
@@ -103,13 +206,38 @@ class ClauService
             'APPID' => $this->APPID,
             'apikey' => $this->API_AUTH_KEY,
         ];
+        
+        $url = config('clau.api_url') . '/ext/v2/compra_tienda_puntos_ext';
+        
+        Log::debug('ClauService buyProduct request', [
+            'url' => $url,
+            'token_length' => strlen($token),
+            'product_id' => $productId,
+            'headers' => array_keys($headers)
+        ]);
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/compra_tienda_puntos_ext', [
-                'token' => $token,
-                'regaloId' => $productId
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders($headers)
+                ->post($url, [
+                    'token' => $token,
+                    'regaloId' => $productId
+                ]);
+                
+            Log::debug('ClauService buyProduct response', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'body_preview' => substr($response->body(), 0, 100) . '...'
             ]);
+            
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('ClauService buyProduct exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
     public function getGifts ($token)
@@ -119,12 +247,36 @@ class ClauService
             'APPID' => $this->APPID,
             'apikey' => $this->API_AUTH_KEY,
         ];
+        
+        $url = config('clau.api_url') . '/ext/v2/consultar_regalos_usuario_ext';
+        
+        Log::debug('ClauService getGifts request', [
+            'url' => $url,
+            'token_length' => strlen($token),
+            'headers' => array_keys($headers)
+        ]);
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/consultar_regalos_usuario_ext', [
-                'token' => $token
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders($headers)
+                ->post($url, [
+                    'token' => $token
+                ]);
+                
+            Log::debug('ClauService getGifts response', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'body_preview' => substr($response->body(), 0, 100) . '...'
             ]);
+            
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('ClauService getGifts exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
     public function recovery ($email)
@@ -134,11 +286,35 @@ class ClauService
             'APPID' => $this->APPID,
             'apikey' => $this->API_AUTH_KEY,
         ];
+        
+        $url = config('clau.api_url') . '/ext/v2/solicitar_reset_password_ext';
+        
+        Log::debug('ClauService recovery request', [
+            'url' => $url,
+            'email' => $email,
+            'headers' => array_keys($headers)
+        ]);
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/solicitar_reset_password_ext', [
-                'email' => $email
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders($headers)
+                ->post($url, [
+                    'email' => $email
+                ]);
+                
+            Log::debug('ClauService recovery response', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'body_preview' => substr($response->body(), 0, 100) . '...'
             ]);
+            
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('ClauService recovery exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 }
