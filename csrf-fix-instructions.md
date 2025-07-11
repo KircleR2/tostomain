@@ -1,13 +1,28 @@
 # CSRF Token Mismatch Fix for Digital Ocean
 
-This document provides instructions for fixing the CSRF token mismatch error that occurs during user registration and login on the Digital Ocean App Platform.
+This document provides instructions for fixing the CSRF token mismatch error that occurs during user registration, login, password recovery, and dashboard operations on the Digital Ocean App Platform.
 
 ## Changes Made
 
-1. Updated the Vue.js registration and login forms to fetch the CSRF token before submitting the form
-2. Added `withCredentials: true` to axios requests to ensure cookies are sent
+1. Updated all Vue.js components to fetch the CSRF token before submitting forms or making API calls:
+   - RegisterForm.vue
+   - LoginForm.vue
+   - RecoveryPasswordForm.vue
+   - Dashboard.vue (including all dashboard API calls)
+
+2. Added `withCredentials: true` to all axios requests to ensure cookies are sent
+
 3. Updated the axios configuration in bootstrap.js to include credentials by default
-4. Temporarily excluded the `/api/register` and `/api/login` endpoints from CSRF verification (for debugging)
+
+4. Temporarily excluded all API endpoints from CSRF verification (for debugging):
+   - /api/register
+   - /api/login
+   - /api/recovery-password
+   - /api/dashboard
+   - /api/store-points
+   - /api/gifts
+   - /api/buy-product
+
 5. Updated the TrustProxies middleware to trust all proxies
 
 ## Deployment Instructions
@@ -81,4 +96,18 @@ If the issue persists:
 
 ## Long-term Solution
 
-The temporary exclusion of the `/api/register` and `/api/login` endpoints from CSRF verification is not recommended for production. Once you confirm that the other fixes are working, remove these exceptions and ensure proper CSRF token handling. 
+The temporary exclusion of API endpoints from CSRF verification is not recommended for production. Once you confirm that the other fixes are working, remove these exceptions and ensure proper CSRF token handling.
+
+## Future Security Considerations
+
+1. **Implement SPA Authentication**
+
+   Consider implementing a more robust SPA authentication system using Laravel Sanctum's token-based authentication for API calls.
+
+2. **Implement API Versioning**
+
+   Consider implementing API versioning to better manage API changes and security updates.
+
+3. **Regular Security Audits**
+
+   Perform regular security audits to identify and fix potential security issues. 

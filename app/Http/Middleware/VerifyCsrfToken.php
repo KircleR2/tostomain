@@ -16,5 +16,10 @@ class VerifyCsrfToken extends Middleware
         // Remove these exceptions once the CSRF issue is resolved
         'api/register',
         'api/login',
+        'api/recovery-password',
+        'api/dashboard',
+        'api/store-points',
+        'api/gifts',
+        'api/buy-product',
     ];
 }

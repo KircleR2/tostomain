@@ -27,8 +27,18 @@ const gifts = ref([])
 
 onMounted(() => {
   fetchDashboard.value = false
+  // Fetch CSRF token on component mount
+  fetchCsrfToken()
   getUserData()
 })
+
+// Function to fetch CSRF token
+function fetchCsrfToken() {
+  axios.get('/sanctum/csrf-cookie')
+    .catch(error => {
+      console.error('Error fetching CSRF token:', error)
+    })
+}
 
 function getFirstName (){
   return userData.fullname.split(' ')[0]
@@ -46,7 +56,9 @@ function hideError () {
 
 async function getUserDataRequest () {
   return new Promise((resolve, reject) => {
-    axios.post('/api/dashboard')
+    axios.post('/api/dashboard', {}, {
+      withCredentials: true // Ensure cookies are sent with the request
+    })
     .then(response => {
       resolve(response)
     })
@@ -58,95 +70,133 @@ async function getUserDataRequest () {
 
 function getUserData () {
   fetchDashboard.value = true
-  setTimeout(() => {
-    getUserDataRequest()
-    .then(response => {
-      fetchDashboard.value = false
-      if (response.data.code === 0) {
-        Object.assign(userData, response.data.user)
-        getGifts()
-        getStorePoints()
-        isSuccess.value = true
-      } else {
-        isSuccess.value = false
-      }
+  // First get CSRF token, then make API call
+  axios.get('/sanctum/csrf-cookie')
+    .then(() => {
+      setTimeout(() => {
+        getUserDataRequest()
+        .then(response => {
+          fetchDashboard.value = false
+          if (response.data.code === 0) {
+            Object.assign(userData, response.data.user)
+            getGifts()
+            getStorePoints()
+            isSuccess.value = true
+          } else {
+            isSuccess.value = false
+          }
+        })
+        .catch(() => {
+          window.location.href = '/login'
+        })
+      }, 1500)
     })
-    .catch(() => {
+    .catch(error => {
+      console.error('CSRF token error:', error)
       window.location.href = '/login'
     })
-  }, 1500)
 }
 
 function getStorePoints () {
   fetchStorePoints.value = true
-  setTimeout(() => {
-    axios.post('/api/store-points')
-    .then(response => {
-      fetchStorePoints.value = false
-      if (response.data.code === 0) {
-        products.value = response.data.products
-      } else {
-        products.value = []
-      }
+  // First get CSRF token, then make API call
+  axios.get('/sanctum/csrf-cookie')
+    .then(() => {
+      setTimeout(() => {
+        axios.post('/api/store-points', {}, {
+          withCredentials: true // Ensure cookies are sent with the request
+        })
+        .then(response => {
+          fetchStorePoints.value = false
+          if (response.data.code === 0) {
+            products.value = response.data.products
+          } else {
+            products.value = []
+          }
+        })
+        .catch(() => {
+          window.location.href = '/login'
+        })
+      }, 1500)
     })
-    .catch(() => {
+    .catch(error => {
+      console.error('CSRF token error:', error)
       window.location.href = '/login'
     })
-  }, 1500)
 }
 
 function getGifts () {
   fetchGifts.value = true
-  setTimeout(() => {
-    axios.post('/api/gifts')
-    .then(response => {
-      fetchGifts.value = false
-      if (response.data.code === 0) {
-        gifts.value = response.data.gifts
-      } else {
-        gifts.value = []
-      }
+  // First get CSRF token, then make API call
+  axios.get('/sanctum/csrf-cookie')
+    .then(() => {
+      setTimeout(() => {
+        axios.post('/api/gifts', {}, {
+          withCredentials: true // Ensure cookies are sent with the request
+        })
+        .then(response => {
+          fetchGifts.value = false
+          if (response.data.code === 0) {
+            gifts.value = response.data.gifts
+          } else {
+            gifts.value = []
+          }
+        })
+        .catch(() => {
+          window.location.href = '/login'
+        })
+      }, 1500)
     })
-    .catch(() => {
+    .catch(error => {
+      console.error('CSRF token error:', error)
       window.location.href = '/login'
     })
-  }, 1500)
 }
 
 function buyProduct(productId) {
   if (confirm('¿Está seguro que desea canjear el producto?')) {
     fetchStorePoints.value = true
-    axios.post('/api/buy-product', {
-      regaloId: productId
-    })
-    .then(response => {
-      if (response.data.code === 0) {
-        Toastify({
-          text: response.data.message,
-          duration: 3000,
-          close: true,
-          gravity: "top", // `top` or `bottom`
-          position: "center", // `left`, `center` or `right`
-          stopOnFocus: true, // Prevents dismissing of toast on hover
-          style: {
-            background: "linear-gradient(to right, #00b09b, #96c93d)",
-          },
-          onClick: function(){} // Callback after click
-        }).showToast();
-
-        getUserDataRequest()
+    // First get CSRF token, then make API call
+    axios.get('/sanctum/csrf-cookie')
+      .then(() => {
+        axios.post('/api/buy-product', {
+          regaloId: productId
+        }, {
+          withCredentials: true // Ensure cookies are sent with the request
+        })
         .then(response => {
           if (response.data.code === 0) {
-            Object.assign(userData, response.data.user)
-            getGifts()
-            getStorePoints()
+            Toastify({
+              text: response.data.message,
+              duration: 3000,
+              close: true,
+              gravity: "top", // `top` or `bottom`
+              position: "center", // `left`, `center` or `right`
+              stopOnFocus: true, // Prevents dismissing of toast on hover
+              style: {
+                background: "linear-gradient(to right, #00b09b, #96c93d)",
+              },
+              onClick: function(){} // Callback after click
+            }).showToast();
+
+            getUserDataRequest()
+            .then(response => {
+              if (response.data.code === 0) {
+                Object.assign(userData, response.data.user)
+                getGifts()
+                getStorePoints()
+              }
+            })
           }
         })
-      }
-    })
-    .catch(() => {
-      window.location.href = '/login'
-    })
+        .catch(() => {
+          window.location.href = '/login'
+        })
+      })
+      .catch(error => {
+        console.error('CSRF token error:', error)
+        window.location.href = '/login'
+      })
   }
 }
 
