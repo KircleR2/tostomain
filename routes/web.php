@@ -28,6 +28,7 @@ Route::group(['middleware' => ['clau.redirect']], static function () {
 });
 
 Route::get('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout.post');
 Route::get('/dashboard', DashboardController::class)
     ->middleware('clau.auth')
     ->name('back.dashboard');

@@ -40,6 +40,50 @@ function fetchCsrfToken() {
     })
 }
 
+// Handle logout with CSRF token
+function handleLogout(event) {
+  event.preventDefault()
+  
+  // Show loading state
+  fetchDashboard.value = true
+  
+  // Get CSRF token and then perform logout
+  axios.get('/sanctum/csrf-cookie')
+    .then(() => {
+      // Create a form and submit it with the CSRF token
+      const form = document.createElement('form')
+      form.method = 'POST'
+      form.action = '/logout'
+      
+      // Add CSRF token
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      if (csrfToken) {
+        const csrfInput = document.createElement('input')
+        csrfInput.type = 'hidden'
+        csrfInput.name = '_token'
+        csrfInput.value = csrfToken
+        form.appendChild(csrfInput)
+      }
+      
+      // Add method field for Laravel to recognize as POST
+      const methodInput = document.createElement('input')
+      methodInput.type = 'hidden'
+      methodInput.name = '_method'
+      methodInput.value = 'POST'
+      form.appendChild(methodInput)
+      
+      // Append to body and submit
+      document.body.appendChild(form)
+      form.submit()
+    })
+    .catch(error => {
+      console.error('Error during logout:', error)
+      fetchDashboard.value = false
+      // Fallback to direct navigation if CSRF token fetch fails
+      window.location.href = '/logout'
+    })
+}
+
 function getFirstName (){
   return userData.fullname.split(' ')[0]
 }
@@ -252,7 +296,7 @@ async function shareRef () {
         </div>
         <div class="flex md:hidden items-center justify-center space-x-6">
           <div>
-            <a href="logout">
+            <a href="#" @click="handleLogout">
               <svg class="w-[30px]" viewBox="0 0 24 24"><path d="M14.08,15.59L16.67,13H7V11H16.67L14.08,8.41L15.5,7L20.5,12L15.5,17L14.08,15.59M19,3A2,2 0 0,1 21,5V9.67L19,7.67V5H5V19H19V16.33L21,14.33V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5C3,3.89 3.89,3 5,3H19Z" /></svg>
             </a>
           </div>
@@ -272,7 +316,7 @@ async function shareRef () {
               </div>
             </li>
             <li>
-              <a href="/logout">
+              <a href="#" @click="handleLogout">
                 <svg class="w-[30px]" viewBox="0 0 24 24"><path d="M14.08,15.59L16.67,13H7V11H16.67L14.08,8.41L15.5,7L20.5,12L15.5,17L14.08,15.59M19,3A2,2 0 0,1 21,5V9.67L19,7.67V5H5V19H19V16.33L21,14.33V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5C3,3.89 3.89,3 5,3H19Z" /></svg>
               </a>
             </li>
