@@ -20,7 +20,18 @@ onMounted(() => {
   if (errorClose.value) {
     errorClose.value.addEventListener('click', hideError)
   }
+  
+  // Fetch CSRF token on page load to ensure it's fresh
+  fetchCSRFToken()
 })
+
+// Function to fetch a fresh CSRF token
+function fetchCSRFToken() {
+  return axios.get('/sanctum/csrf-cookie')
+    .catch(error => {
+      console.error('Failed to fetch CSRF token', error)
+    })
+}
 
 function resetForm() {
   Object.assign(loginData, loginInitialState)
@@ -55,44 +66,60 @@ function login () {
 
   fetchLogin.value = true
   
-  // Add a slight delay to show loading state
-  setTimeout(() => {
-    axios.post('/api/login', loginData, {
-      withCredentials: true,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      }
+  // First fetch a fresh CSRF token, then perform login
+  fetchCSRFToken()
+    .then(() => {
+      // Add a slight delay to show loading state
+      setTimeout(() => {
+        // Get the CSRF token from the meta tag
+        const token = document.querySelector('meta[name="csrf-token"]')
+        
+        axios.post('/api/login', loginData, {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': token ? token.content : ''
+          }
+        })
+        .then(response => {
+          fetchLogin.value = false
+          console.log('Login response:', response.data)
+          
+          if (response.data.code === 0) {
+            // Successful login
+            window.location.href = '/dashboard'
+          } else {
+            // API returned an error
+            showError(response.data?.message || 'Error de autenticación. Intente nuevamente.')
+          }
+        })
+        .catch(err => {
+          fetchLogin.value = false
+          console.error('Login error:', err)
+          
+          if (err.response) {
+            // Server responded with an error status
+            if (err.response.status === 419) {
+              showError('Error de sesión. Por favor recargue la página e intente nuevamente.')
+            } else {
+              showError(err.response.data?.message || `Error ${err.response.status}: Intente nuevamente.`)
+            }
+          } else if (err.request) {
+            // Request was made but no response received
+            showError('No se pudo conectar al servidor. Verifique su conexión e intente nuevamente.')
+          } else {
+            // Other error occurred
+            showError('Error al procesar la solicitud. Intente nuevamente.')
+          }
+        })
+      }, 1000)
     })
-    .then(response => {
+    .catch(() => {
       fetchLogin.value = false
-      console.log('Login response:', response.data)
-      
-      if (response.data.code === 0) {
-        // Successful login
-        window.location.href = '/dashboard'
-      } else {
-        // API returned an error
-        showError(response.data?.message || 'Error de autenticación. Intente nuevamente.')
-      }
+      showError('Error de sesión. Por favor recargue la página e intente nuevamente.')
     })
-    .catch(err => {
-      fetchLogin.value = false
-      console.error('Login error:', err)
-      
-      if (err.response) {
-        // Server responded with an error status
-        showError(err.response.data?.message || `Error ${err.response.status}: Intente nuevamente.`)
-      } else if (err.request) {
-        // Request was made but no response received
-        showError('No se pudo conectar al servidor. Verifique su conexión e intente nuevamente.')
-      } else {
-        // Other error occurred
-        showError('Error al procesar la solicitud. Intente nuevamente.')
-      }
-    })
-  }, 1000)
 }
 
 </script>

@@ -16,9 +16,48 @@ window.axios.defaults.withCredentials = true;
 const token = document.head.querySelector('meta[name="csrf-token"]');
 if (token) {
     window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+    // Also set the X-XSRF-TOKEN header which Laravel expects
+    window.axios.defaults.headers.common['X-XSRF-TOKEN'] = getCookie('XSRF-TOKEN');
 } else {
     console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
 }
+
+// Function to get cookie by name - needed for XSRF-TOKEN
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+// Add request interceptor to handle CSRF token refreshing
+window.axios.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response && error.response.status === 419) {
+            // CSRF token mismatch - refresh the page to get a new token
+            console.warn('CSRF token mismatch. Refreshing token...');
+            
+            // Refresh CSRF token by calling sanctum endpoint
+            return axios.get('/sanctum/csrf-cookie')
+                .then(() => {
+                    // Update headers with new token
+                    const newToken = getCookie('XSRF-TOKEN');
+                    if (newToken) {
+                        window.axios.defaults.headers.common['X-XSRF-TOKEN'] = newToken;
+                    }
+                    
+                    // Retry the original request
+                    return axios(error.config);
+                })
+                .catch(refreshError => {
+                    console.error('Failed to refresh CSRF token', refreshError);
+                    return Promise.reject(error);
+                });
+        }
+        return Promise.reject(error);
+    }
+);
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\ApiDashboardController;
 use App\Http\Controllers\Api\WebhookController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +16,14 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+// CSRF Token route - returns the current CSRF token for JavaScript apps
+Route::get('/csrf-token', function (Request $request) {
+    return response()->json([
+        'token' => csrf_token(),
+        'time' => now()->toIso8601String()
+    ]);
+});
 
 // Public routes
 Route::post('/login', [ApiAuthController::class, 'login']);

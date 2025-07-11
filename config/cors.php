@@ -15,17 +15,17 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'images/favicon/manifest.json', '*.json'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', '*manifest.json', '*.json', '*/*', 'login', 'dashboard'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => ['https://tostocoffee.com', 'https://www.tostocoffee.com', 'http://tostocoffee.com', 'http://www.tostocoffee.com', 'http://localhost:8000', 'http://localhost', '*'],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => ['#^https?://(www\.)?tostocoffee\.com$#'],
 
     'allowed_headers' => ['*'],
 
-    'exposed_headers' => [],
+    'exposed_headers' => ['*'],
 
     'max_age' => 0,
 
