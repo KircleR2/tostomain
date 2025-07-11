@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ClauService
 {
@@ -32,12 +33,47 @@ class ClauService
             'apikeyProvider' => $this->API_KEY_PROVIDER,
         ];
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/iniciar_sesion_ext', [
-                'email' => $email,
-                'password' => $password
+        Log::info('Login attempt', [
+            'email' => $email,
+            'api_url' => config('clau.api_url'),
+            'appid' => $this->APPID,
+            'has_auth_key' => !empty($this->API_AUTH_KEY),
+            'has_provider_key' => !empty($this->API_KEY_PROVIDER),
+        ]);
+
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders($headers)
+                ->post(config('clau.api_url') . '/ext/v2/iniciar_sesion_ext', [
+                    'email' => $email,
+                    'password' => $password
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                Log::info('Login response', [
+                    'status' => $response->status(),
+                    'code' => $data['codigoRespuesta'] ?? 'missing',
+                    'message' => $data['msj'] ?? 'No message',
+                    'has_token' => isset($data['token']),
+                ]);
+            } else {
+                Log::error('Login failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
+            }
+
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('Exception during login', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
+            
+            // Create a manual response to maintain the expected interface
+            return Http::response(['msj' => 'Error connecting to authentication service: ' . $e->getMessage()], 500);
+        }
     }
 
     public function register($register_data) {

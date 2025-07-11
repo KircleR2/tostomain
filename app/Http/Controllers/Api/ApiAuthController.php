@@ -30,7 +30,16 @@ class ApiAuthController extends Controller
             'password' => $request->input('password'),
         ];
 
+        // Log the login attempt with masked password
+        Log::info('Login attempt in controller', [
+            'email' => $login_data['email'],
+            'has_session' => $request->hasSession(),
+            'session_id' => $request->session()->getId(),
+            'session_driver' => config('session.driver'),
+        ]);
+
         $response = $this->clauService->login($login_data['email'], $login_data['password']);
+        
         if ($response->successful()) {
             $responseData = $response->json();
 
@@ -44,35 +53,71 @@ class ApiAuthController extends Controller
                     ])->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
                 }
                 
-                // Store token in session
-                $request->session()->put('clauToken', $responseData['token']);
-                
-                // Force session save
-                $request->session()->save();
-                
-                // Set cookie manually as backup
-                $cookie = cookie('clau_token', $responseData['token'], 120, '/', null, true, false);
-                
-                // Log for debugging
-                Log::debug('Login successful, token stored in session', [
-                    'has_session' => $request->hasSession(),
-                    'session_id' => $request->session()->getId(),
-                    'token_stored' => !empty($responseData['token']),
-                    'session_driver' => config('session.driver'),
-                    'cookie_set' => true
-                ]);
-                
-                return response()->json([
-                    'code' => 0,
-                    'message' => 'Haz iniciado sesión correctamente',
-                ])->setStatusCode(Response::HTTP_OK)->withCookie($cookie);
+                try {
+                    // Verify we have a token before trying to store it
+                    if (empty($responseData['token'])) {
+                        Log::error('No token received from authentication service', [
+                            'response_data' => $responseData
+                        ]);
+                        return response()->json([
+                            'code' => 500,
+                            'message' => 'No token received from authentication service',
+                        ])->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
+                    }
+
+                    // Store token in session
+                    $request->session()->put('clauToken', $responseData['token']);
+                    
+                    // Force session save
+                    $request->session()->save();
+                    
+                    // Set cookie with HTTP Only false to allow JS access
+                    $cookie = cookie('clau_token', $responseData['token'], 120, '/', null, env('APP_ENV') !== 'local', false);
+                    
+                    // Log for debugging
+                    Log::debug('Login successful, token stored in session and cookie', [
+                        'has_session' => $request->hasSession(),
+                        'session_id' => $request->session()->getId(),
+                        'token_length' => strlen($responseData['token']),
+                        'session_driver' => config('session.driver'),
+                        'cookie_set' => true,
+                        'cookie_path' => '/',
+                        'cookie_domain' => null
+                    ]);
+                    
+                    return response()->json([
+                        'code' => 0,
+                        'message' => 'Haz iniciado sesión correctamente',
+                    ])->setStatusCode(Response::HTTP_OK)->withCookie($cookie);
+                } catch (\Exception $e) {
+                    Log::error('Session error during login', [
+                        'message' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    return response()->json([
+                        'code' => 500,
+                        'message' => 'Error storing authentication token',
+                    ])->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
+                }
             }
+
+            // Authentication failed with API error
+            Log::warning('Authentication rejected by API', [
+                'code' => $responseData['codigoRespuesta'] ?? 'unknown',
+                'message' => $responseData['msj'] ?? 'No message provided'
+            ]);
 
             return response()->json([
                 'code' => $responseData['codigoRespuesta'],
                 'message' => $responseData['msj'],
             ])->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
+
+        // API request failed
+        Log::error('API request failed during login', [
+            'status' => $response->status(),
+            'body' => $response->body()
+        ]);
 
         return response()->json([
             'message' => 'Error en la solicitud a la API',

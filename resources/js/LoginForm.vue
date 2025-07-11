@@ -15,6 +15,11 @@ const loginData = reactive({ ...loginInitialState })
 
 onMounted(() => {
   fetchLogin.value = false
+  
+  // Setup error close button
+  if (errorClose.value) {
+    errorClose.value.addEventListener('click', hideError)
+  }
 })
 
 function resetForm() {
@@ -22,36 +27,72 @@ function resetForm() {
 }
 
 function showError (message) {
-  console.log(errorText.value)
-  errorText.value.innerHTML = message
-  errorMessage.value.classList.remove('hidden')
-  setTimeout(hideError, 5000)
+  if (!message) {
+    message = 'Error de autenticación. Intente nuevamente.'
+  }
+  
+  if (errorText.value) {
+    errorText.value.innerHTML = message
+    errorMessage.value.classList.remove('hidden')
+    setTimeout(hideError, 5000)
+  } else {
+    console.error('Error displaying message:', message)
+    alert(message)
+  }
 }
 
 function hideError () {
-  errorMessage.value.classList.add('hidden')
+  if (errorMessage.value) {
+    errorMessage.value.classList.add('hidden')
+  }
 }
+
 function login () {
-  if (!loginForm.value.checkValidity()) {
+  if (!loginForm.value || !loginForm.value.checkValidity()) {
+    showError('Por favor complete todos los campos correctamente.')
     return
   }
 
   fetchLogin.value = true
+  
+  // Add a slight delay to show loading state
   setTimeout(() => {
-    axios.post('/api/login', loginData)
+    axios.post('/api/login', loginData, {
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
     .then(response => {
       fetchLogin.value = false
+      console.log('Login response:', response.data)
+      
       if (response.data.code === 0) {
+        // Successful login
         window.location.href = '/dashboard'
       } else {
-        showError(response.data?.message)
+        // API returned an error
+        showError(response.data?.message || 'Error de autenticación. Intente nuevamente.')
       }
     })
     .catch(err => {
       fetchLogin.value = false
-      showError(err?.response?.data?.message)
+      console.error('Login error:', err)
+      
+      if (err.response) {
+        // Server responded with an error status
+        showError(err.response.data?.message || `Error ${err.response.status}: Intente nuevamente.`)
+      } else if (err.request) {
+        // Request was made but no response received
+        showError('No se pudo conectar al servidor. Verifique su conexión e intente nuevamente.')
+      } else {
+        // Other error occurred
+        showError('Error al procesar la solicitud. Intente nuevamente.')
+      }
     })
-  }, 1500)
+  }, 1000)
 }
 
 </script>
