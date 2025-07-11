@@ -15,11 +15,11 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'images/favicon/manifest.json'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => ['https://www.tostocoffee.com', 'https://tostocoffee.com', 'http://localhost:8000', 'http://localhost'],
 
     'allowed_origins_patterns' => [],
 
