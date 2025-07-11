@@ -15,17 +15,11 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'images/favicon/manifest.json'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'images/favicon/*', '*.json', '*.css', '*.js', '*.map'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'https://www.tostocoffee.com', 
-        'https://tostocoffee.com', 
-        'https://tostomain-achxn.ondigitalocean.app',
-        'http://localhost:8000', 
-        'http://localhost'
-    ],
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 
