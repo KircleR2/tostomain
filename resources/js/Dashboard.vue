@@ -50,37 +50,27 @@ function handleLogout(event) {
   // Get CSRF token and then perform logout
   axios.get('/sanctum/csrf-cookie')
     .then(() => {
-      // Create a form and submit it with the CSRF token
-      const form = document.createElement('form')
-      form.method = 'POST'
-      form.action = '/logout'
-      
-      // Add CSRF token
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-      if (csrfToken) {
-        const csrfInput = document.createElement('input')
-        csrfInput.type = 'hidden'
-        csrfInput.name = '_token'
-        csrfInput.value = csrfToken
-        form.appendChild(csrfInput)
-      }
-      
-      // Add method field for Laravel to recognize as POST
-      const methodInput = document.createElement('input')
-      methodInput.type = 'hidden'
-      methodInput.name = '_method'
-      methodInput.value = 'POST'
-      form.appendChild(methodInput)
-      
-      // Append to body and submit
-      document.body.appendChild(form)
-      form.submit()
+      // Use axios to make a POST request to logout endpoint
+      axios.post('/logout', {}, {
+        withCredentials: true // Ensure cookies are sent with the request
+      })
+      .then(response => {
+        console.log('Logout successful')
+        // Redirect to login page
+        window.location.href = '/login'
+      })
+      .catch(error => {
+        console.error('Error during logout:', error)
+        fetchDashboard.value = false
+        // Fallback to direct navigation if CSRF token fetch fails
+        window.location.href = '/login'
+      })
     })
     .catch(error => {
-      console.error('Error during logout:', error)
+      console.error('Error fetching CSRF token:', error)
       fetchDashboard.value = false
       // Fallback to direct navigation if CSRF token fetch fails
-      window.location.href = '/logout'
+      window.location.href = '/login'
     })
 }
 

@@ -26,15 +26,34 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         // Log before logout
-        Log::debug('Logging out user', [
+        Log::debug('Logout initiated', [
             'has_session' => $request->hasSession(),
             'token_exists' => $request->session()->has('clauToken'),
-            'session_id' => $request->session()->getId()
+            'session_id' => $request->session()->getId(),
+            'method' => $request->method(),
+            'is_ajax' => $request->ajax(),
+            'headers' => $request->headers->all()
         ]);
         
         // Remove token from session
         $request->session()->forget('clauToken');
+        
+        // Invalidate the session
+        $request->session()->invalidate();
+        
+        // Regenerate the CSRF token
+        $request->session()->regenerateToken();
+        
+        // Log after clearing session
+        Log::debug('Session cleared during logout');
+        
+        // Force session save
         $request->session()->save();
+        
+        // Redirect based on request type
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'redirect' => route('auth.login')]);
+        }
         
         return redirect(route('auth.login'));
     }

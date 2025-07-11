@@ -21,5 +21,6 @@ class VerifyCsrfToken extends Middleware
         'api/store-points',
         'api/gifts',
         'api/buy-product',
+        'logout', // Temporarily exclude logout route for debugging
     ];
 }
