@@ -44,9 +44,31 @@ Route::get('/images/favicon/manifest.json', function () {
     $path = public_path('images/favicon/manifest.json');
     $content = file_get_contents($path);
     
-    return response($content)
-        ->header('Content-Type', 'application/json')
-        ->header('Access-Control-Allow-Origin', '*')
-        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-        ->header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    $response = response($content)->header('Content-Type', 'application/json');
+    
+    // Get the origin from the request
+    $origin = request()->header('Origin');
+    
+    // List of allowed domains
+    $allowedOrigins = [
+        'https://www.tostocoffee.com',
+        'https://tostocoffee.com',
+        'https://tostomain-achxn.ondigitalocean.app',
+        'http://localhost:8000',
+        'http://localhost'
+    ];
+    
+    // If the origin is in our allowed list, set it as the allowed origin
+    if (in_array($origin, $allowedOrigins)) {
+        $response->header('Access-Control-Allow-Origin', $origin);
+    } else {
+        // Otherwise, use a wildcard (or default to main domain if you prefer)
+        $response->header('Access-Control-Allow-Origin', '*');
+    }
+    
+    // Add other CORS headers
+    $response->header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    $response->header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    
+    return $response;
 });

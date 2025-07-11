@@ -19,7 +19,13 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://www.tostocoffee.com', 'https://tostocoffee.com', 'http://localhost:8000', 'http://localhost'],
+    'allowed_origins' => [
+        'https://www.tostocoffee.com', 
+        'https://tostocoffee.com', 
+        'https://tostomain-achxn.ondigitalocean.app',
+        'http://localhost:8000', 
+        'http://localhost'
+    ],
 
     'allowed_origins_patterns' => [],
 

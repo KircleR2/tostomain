@@ -23,7 +23,15 @@
 # Add CORS headers for manifest.json and other static files
 <IfModule mod_headers.c>
     <FilesMatch "\.(json|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$">
-        Header set Access-Control-Allow-Origin "https://www.tostocoffee.com"
+        # Check if origin header is present
+        SetEnvIf Origin "^(https://www\.tostocoffee\.com|https://tostocoffee\.com|https://tostomain-achxn\.ondigitalocean\.app|http://localhost:8000|http://localhost)$" ORIGIN_DOMAIN=$1
+        
+        # If origin is allowed, set it as the allowed origin
+        Header set Access-Control-Allow-Origin "%{ORIGIN_DOMAIN}e" env=ORIGIN_DOMAIN
+        
+        # If no valid origin is found, default to the main domain
+        Header set Access-Control-Allow-Origin "https://www.tostocoffee.com" env=!ORIGIN_DOMAIN
+        
         Header set Access-Control-Allow-Methods "GET, OPTIONS"
         Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept"
     </FilesMatch>
