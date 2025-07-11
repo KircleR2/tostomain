@@ -12,6 +12,8 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        // Temporarily exclude the register endpoint for debugging
+        // Remove this exception once the CSRF issue is resolved
+        'api/register',
     ];
 }
