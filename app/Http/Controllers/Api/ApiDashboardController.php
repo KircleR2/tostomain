@@ -7,13 +7,41 @@ use App\Services\ClauService;
 use Http;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class ApiDashboardController extends Controller
 {
     public function index (Request $request)
     {
-        $token = Session::get('clauToken');
+        // Debug session information
+        Log::info('API Dashboard request', [
+            'has_session' => $request->hasSession(),
+            'session_id' => $request->session() ? $request->session()->getId() : 'no-session',
+            'session_driver' => config('session.driver'),
+            'request_headers' => $request->headers->all(),
+            'cookies' => $request->cookies->all(),
+        ]);
+
+        // Try to get token from session or cookie
+        $token = null;
+        if ($request->hasSession()) {
+            $token = $request->session()->get('clauToken');
+        }
+        
+        // Fallback to cookie if session doesn't have token
+        if (!$token) {
+            $token = $request->cookie('clau_token');
+        }
+        
+        if (!$token) {
+            Log::warning('No token found in API request');
+            return response()->json([
+                'code' => 401,
+                'message' => 'Authentication required',
+            ])->setStatusCode(Response::HTTP_UNAUTHORIZED);
+        }
+
         $response = (new ClauService())->getUserData($token);
 
         if ($response->successful()) {
@@ -47,7 +75,24 @@ class ApiDashboardController extends Controller
 
     public function store_points (Request $request)
     {
-        $token = Session::get('clauToken');
+        // Try to get token from session or cookie
+        $token = null;
+        if ($request->hasSession()) {
+            $token = $request->session()->get('clauToken');
+        }
+        
+        // Fallback to cookie if session doesn't have token
+        if (!$token) {
+            $token = $request->cookie('clau_token');
+        }
+        
+        if (!$token) {
+            return response()->json([
+                'code' => 401,
+                'message' => 'Authentication required',
+            ])->setStatusCode(Response::HTTP_UNAUTHORIZED);
+        }
+        
         $response = (new ClauService())->getStorePoints($token);
 
         if ($response->successful()) {
@@ -74,7 +119,24 @@ class ApiDashboardController extends Controller
 
     public function buy_product (Request $request)
     {
-        $token = Session::get('clauToken');
+        // Try to get token from session or cookie
+        $token = null;
+        if ($request->hasSession()) {
+            $token = $request->session()->get('clauToken');
+        }
+        
+        // Fallback to cookie if session doesn't have token
+        if (!$token) {
+            $token = $request->cookie('clau_token');
+        }
+        
+        if (!$token) {
+            return response()->json([
+                'code' => 401,
+                'message' => 'Authentication required',
+            ])->setStatusCode(Response::HTTP_UNAUTHORIZED);
+        }
+        
         $productId = $request->input('regaloId');
         $response = (new ClauService())->buyProduct($token, $productId);
 
@@ -102,7 +164,24 @@ class ApiDashboardController extends Controller
 
     public function gifts (Request $request)
     {
-        $token = Session::get('clauToken');
+        // Try to get token from session or cookie
+        $token = null;
+        if ($request->hasSession()) {
+            $token = $request->session()->get('clauToken');
+        }
+        
+        // Fallback to cookie if session doesn't have token
+        if (!$token) {
+            $token = $request->cookie('clau_token');
+        }
+        
+        if (!$token) {
+            return response()->json([
+                'code' => 401,
+                'message' => 'Authentication required',
+            ])->setStatusCode(Response::HTTP_UNAUTHORIZED);
+        }
+        
         $response = (new ClauService())->getGifts($token);
 
         if ($response->successful()) {
