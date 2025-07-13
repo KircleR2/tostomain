@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class TransferClauTokenMiddleware
@@ -22,20 +23,51 @@ class TransferClauTokenMiddleware
             }
             
             // Check if token already exists in session
-            if ($request->session()->has('clauToken')) {
-                return $next($request);
-            }
-            
-            // Check if token exists in cookie
+            $sessionToken = $request->session()->get('clauToken');
             $cookieToken = $request->cookie('clau_token');
-            if (!empty($cookieToken)) {
+            
+            // If token exists in cookie but not in session, transfer it to session
+            if (!$sessionToken && $cookieToken) {
+                Log::info('Transferring token from cookie to session', [
+                    'cookie_token_length' => strlen($cookieToken),
+                    'session_id' => $request->session()->getId()
+                ]);
+                
                 // Store token in session
                 $request->session()->put('clauToken', $cookieToken);
                 $request->session()->save();
             }
+            // If token exists in session but not in cookie, set the cookie
+            else if ($sessionToken && !$cookieToken) {
+                Log::info('Transferring token from session to cookie', [
+                    'session_token_length' => strlen($sessionToken),
+                    'session_id' => $request->session()->getId()
+                ]);
+                
+                // Set cookie with appropriate settings for production
+                $response = $next($request);
+                $domain = parse_url(config('app.url'), PHP_URL_HOST) ?: null;
+                
+                return $response->withCookie(cookie(
+                    'clau_token',        // name
+                    $sessionToken,       // value
+                    120,                 // minutes (2 hours)
+                    '/',                 // path
+                    $domain,             // domain
+                    request()->secure(), // secure
+                    false,               // httpOnly (false to allow JS access)
+                    true,                // raw
+                    'lax'                // sameSite
+                ));
+            }
             
             return $next($request);
         } catch (\Exception $e) {
+            Log::error('Error in TransferClauTokenMiddleware', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             // Silent fail and continue
             return $next($request);
         }

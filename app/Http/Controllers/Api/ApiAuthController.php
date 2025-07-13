@@ -30,6 +30,13 @@ class ApiAuthController extends Controller
             'password' => $request->input('password'),
         ];
 
+        Log::info('Login attempt', [
+            'email' => $login_data['email'],
+            'has_password' => !empty($login_data['password']),
+            'ip' => $request->ip(),
+            'user_agent' => $request->header('User-Agent')
+        ]);
+
         $response = $this->clauService->login($login_data['email'], $login_data['password']);
         
         if ($response->successful()) {
@@ -38,6 +45,11 @@ class ApiAuthController extends Controller
             if (isset($responseData['codigoRespuesta']) && $responseData['codigoRespuesta'] === 0) {
                 // Check if session exists
                 if (!$request->hasSession()) {
+                    Log::error('Session not available during login', [
+                        'email' => $login_data['email'],
+                        'ip' => $request->ip()
+                    ]);
+                    
                     return response()->json([
                         'code' => 500,
                         'message' => 'Session not available',
@@ -50,8 +62,28 @@ class ApiAuthController extends Controller
                 // Force session save
                 $request->session()->save();
                 
-                // Set cookie manually as backup
-                $cookie = cookie('clau_token', $responseData['token'], 120, '/', null, true, false);
+                // Set cookie with appropriate settings for production
+                $domain = parse_url(config('app.url'), PHP_URL_HOST) ?: null;
+                $cookie = cookie(
+                    'clau_token',        // name
+                    $responseData['token'], // value
+                    120,                 // minutes (2 hours)
+                    '/',                 // path
+                    $domain,             // domain
+                    $request->secure(),  // secure
+                    false,               // httpOnly (false to allow JS access)
+                    true,                // raw
+                    'lax'                // sameSite
+                );
+                
+                Log::debug('Login successful, token stored in session', [
+                    'has_session' => $request->hasSession(),
+                    'session_id' => $request->session()->getId(),
+                    'token_stored' => $request->session()->has('clauToken'),
+                    'token_length' => strlen($responseData['token']),
+                    'session_driver' => config('session.driver'),
+                    'cookie_set' => true
+                ]);
                 
                 return response()->json([
                     'code' => 0,
@@ -59,11 +91,23 @@ class ApiAuthController extends Controller
                 ])->setStatusCode(Response::HTTP_OK)->withCookie($cookie);
             }
 
+            Log::warning('Login failed: API returned error', [
+                'code' => $responseData['codigoRespuesta'],
+                'message' => $responseData['msj'],
+                'email' => $login_data['email']
+            ]);
+
             return response()->json([
                 'code' => $responseData['codigoRespuesta'],
                 'message' => $responseData['msj'],
             ])->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
+
+        Log::error('Login failed: API request error', [
+            'status' => $response->status(),
+            'body' => $response->body(),
+            'email' => $login_data['email']
+        ]);
 
         return response()->json([
             'message' => 'Error en la solicitud a la API',
