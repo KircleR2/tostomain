@@ -70,6 +70,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'clau.auth' => \App\Http\Middleware\ClauTokenMiddleware::class,
         'clau.redirect' => \App\Http\Middleware\RedirectIdClauTokenMiddleware::class,
+        'clau.token' => \App\Http\Middleware\ClauTokenMiddleware::class,
         'session' => \Illuminate\Session\Middleware\StartSession::class,
     ];
 }
