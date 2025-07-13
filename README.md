@@ -65,68 +65,115 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
-# Tosto Coffee App
+# Tosto Coffee Website
 
-## Session Persistence Fix for DigitalOcean App Platform
+This repository contains the website for Tosto Coffee, a coffee shop chain in Panama.
 
-To fix the login redirect loop issue on DigitalOcean App Platform, the following changes have been made:
+## Local Development Setup
 
-1. Updated CORS configuration to support credentials
-2. Added the DigitalOcean App Platform domain to Sanctum's stateful domains
-3. Changed session driver from cookie to database
-4. Added a migration for the sessions table
-5. Enhanced middleware to check for both session token and backup cookie
-6. Added better error handling and debugging
-7. Updated API routes to ensure proper session handling
+1. Clone the repository
+2. Create a `.env` file based on `.env.example`
+3. Install PHP dependencies: `composer install`
+4. Install JavaScript dependencies: `npm install`
+5. Generate application key: `php artisan key:generate`
+6. Create a database and update the `.env` file with your database credentials
+7. Run migrations: `php artisan migrate`
+8. Compile assets: `npm run dev` or `npm run prod`
+9. Start the development server: `php artisan serve`
 
-### Deployment Instructions
+## Authentication System
 
-1. **Run Database Migration**
+This application uses an external authentication service called "Clau" instead of Laravel's built-in auth system. The authentication flow works as follows:
 
-   After deploying to DigitalOcean App Platform, run the migration to create the sessions table:
+1. User submits login credentials on the login page
+2. The credentials are sent to the Clau API via the `ApiAuthController@login` method
+3. If authentication is successful, the API returns a token
+4. The token is stored both in a cookie and in the session
+5. The `TransferClauTokenMiddleware` ensures the token is transferred from the cookie to the session when needed
+6. Protected routes use the `ClauTokenMiddleware` to verify that the user is authenticated
 
-   ```
-   php artisan migrate
-   ```
+## Deployment to DigitalOcean
 
-2. **Environment Variables**
+### Environment Configuration
 
-   Add the following environment variables in the DigitalOcean App Platform dashboard:
+Make sure to set the following environment variables in your DigitalOcean App Platform settings:
 
-   ```
-   SESSION_DRIVER=database
-   SESSION_LIFETIME=120
-   SESSION_SECURE_COOKIE=true
-   SESSION_DOMAIN=tostomain-achxn.ondigitalocean.app
-   SESSION_SAME_SITE=lax
-   TRUSTED_PROXIES=*
-   SANCTUM_STATEFUL_DOMAINS=tostomain-achxn.ondigitalocean.app
-   ```
+```
+APP_NAME="Tosto Coffee"
+APP_ENV=production
+APP_KEY=[your-app-key]
+APP_DEBUG=false
+APP_URL=https://tostocoffee.com
 
-3. **Clear Cache**
+LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
 
-   After deploying, clear the cache:
+DB_CONNECTION=mysql
+DB_HOST=[your-db-host]
+DB_PORT=25060
+DB_DATABASE=[your-db-name]
+DB_USERNAME=[your-db-username]
+DB_PASSWORD=[your-db-password]
+MYSQL_ATTR_SSL_CA=/etc/ssl/certs/ca-certificates.crt
 
-   ```
-   php artisan config:clear
-   php artisan cache:clear
-   php artisan route:clear
-   ```
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
 
-4. **Verify Logs**
+CLAU_API_URL="https://api2.clau.io"
+CLAU_API_POS_KEY=[your-pos-key]
+CLAU_API_AUTH_KEY=[your-auth-key]
+CLAU_API_KEY_PROVIDER=[your-key-provider]
+CLAU_APPID=[your-appid]
+CLAU_ORIGIN="web_tosto"
+CLAU_WEBHOOK_ORIGIN="clauhook"
+CLAU_WEBHOOK_KEY=[your-webhook-key]
 
-   Check the logs for any session-related issues:
+ZOHO_API_URL="https://www.zohoapis.com/crm/v5"
+ZOHO_API_REFRESH_URL="https://accounts.zoho.com/oauth/v2/token"
+ZOHO_CLIENT_ID=[your-client-id]
+ZOHO_CLIENT_SECRET=[your-client-secret]
+ZOHO_REFRESH_TOKEN=[your-refresh-token]
+ZOHO_AUTH_TOKEN=[your-auth-token]
+```
 
-   ```
-   php artisan log:tail
-   ```
+### Build Commands
+
+In your DigitalOcean App Platform settings, use the following build commands:
+
+```
+composer install --no-dev --optimize-autoloader
+npm ci
+npm run prod
+```
+
+### Run Command
+
+```
+heroku-php-apache2 public/
+```
 
 ### Troubleshooting
 
-If issues persist:
+If you encounter authentication issues, check the following:
 
-1. Check that the sessions table was created successfully
-2. Verify that the environment variables are set correctly
-3. Ensure that the database connection is working properly
-4. Check the logs for any errors related to session handling
-5. Clear browser cookies and try again
+1. Make sure the Clau API credentials are correctly set in the environment variables
+2. Check the application logs for detailed error messages
+3. Use the diagnostic routes (in debug mode only):
+   - `/diagnostic/session` - Shows session information
+   - `/diagnostic/api-test` - Tests API connection
+   - `/diagnostic/clau-test` - Tests Clau API connection
+   - `/diagnostic/env` - Shows environment configuration
+
+## Recent Fixes
+
+### Authentication Flow Fix (July 2024)
+
+- Added `TransferClauTokenMiddleware` to ensure tokens are properly transferred from cookies to session
+- Improved error handling in API controllers
+- Added detailed logging throughout the authentication flow
+- Added diagnostic routes for troubleshooting
+
+## License
+
+All rights reserved. This code is proprietary and confidential.
