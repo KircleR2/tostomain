@@ -30,12 +30,16 @@ class ApiAuthController extends Controller
             'password' => $request->input('password'),
         ];
 
-        Log::info('Login attempt', [
-            'email' => $login_data['email'],
-            'has_password' => !empty($login_data['password']),
-            'ip' => $request->ip(),
-            'user_agent' => $request->header('User-Agent')
-        ]);
+        try {
+            Log::info('Login attempt', [
+                'email' => $login_data['email'],
+                'has_password' => !empty($login_data['password']),
+                'ip' => $request->ip(),
+                'user_agent' => $request->header('User-Agent')
+            ]);
+        } catch (\Exception $e) {
+            // Silent fail if logging fails
+        }
 
         $response = $this->clauService->login($login_data['email'], $login_data['password']);
         
@@ -45,10 +49,14 @@ class ApiAuthController extends Controller
             if (isset($responseData['codigoRespuesta']) && $responseData['codigoRespuesta'] === 0) {
                 // Check if session exists
                 if (!$request->hasSession()) {
-                    Log::error('Session not available during login', [
-                        'email' => $login_data['email'],
-                        'ip' => $request->ip()
-                    ]);
+                    try {
+                        Log::error('Session not available during login', [
+                            'email' => $login_data['email'],
+                            'ip' => $request->ip()
+                        ]);
+                    } catch (\Exception $e) {
+                        // Silent fail if logging fails
+                    }
                     
                     return response()->json([
                         'code' => 500,
@@ -76,14 +84,18 @@ class ApiAuthController extends Controller
                     'lax'                // sameSite
                 );
                 
-                Log::debug('Login successful, token stored in session', [
-                    'has_session' => $request->hasSession(),
-                    'session_id' => $request->session()->getId(),
-                    'token_stored' => $request->session()->has('clauToken'),
-                    'token_length' => strlen($responseData['token']),
-                    'session_driver' => config('session.driver'),
-                    'cookie_set' => true
-                ]);
+                try {
+                    Log::debug('Login successful, token stored in session', [
+                        'has_session' => $request->hasSession(),
+                        'session_id' => $request->session()->getId(),
+                        'token_stored' => $request->session()->has('clauToken'),
+                        'token_length' => strlen($responseData['token']),
+                        'session_driver' => config('session.driver'),
+                        'cookie_set' => true
+                    ]);
+                } catch (\Exception $e) {
+                    // Silent fail if logging fails
+                }
                 
                 return response()->json([
                     'code' => 0,
@@ -91,11 +103,15 @@ class ApiAuthController extends Controller
                 ])->setStatusCode(Response::HTTP_OK)->withCookie($cookie);
             }
 
-            Log::warning('Login failed: API returned error', [
-                'code' => $responseData['codigoRespuesta'],
-                'message' => $responseData['msj'],
-                'email' => $login_data['email']
-            ]);
+            try {
+                Log::warning('Login failed: API returned error', [
+                    'code' => $responseData['codigoRespuesta'],
+                    'message' => $responseData['msj'],
+                    'email' => $login_data['email']
+                ]);
+            } catch (\Exception $e) {
+                // Silent fail if logging fails
+            }
 
             return response()->json([
                 'code' => $responseData['codigoRespuesta'],
@@ -103,11 +119,15 @@ class ApiAuthController extends Controller
             ])->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
 
-        Log::error('Login failed: API request error', [
-            'status' => $response->status(),
-            'body' => $response->body(),
-            'email' => $login_data['email']
-        ]);
+        try {
+            Log::error('Login failed: API request error', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'email' => $login_data['email']
+            ]);
+        } catch (\Exception $e) {
+            // Silent fail if logging fails
+        }
 
         return response()->json([
             'message' => 'Error en la solicitud a la API',

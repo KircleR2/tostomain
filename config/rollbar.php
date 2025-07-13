@@ -35,8 +35,8 @@ return [
     // Capture uncaught exceptions
     'capture_uncaught' => true,
     
-    // Enable/disable reporting
-    'enabled' => env('ROLLBAR_TOKEN') ? true : false,
+    // Enable/disable reporting - only enable if token is provided
+    'enabled' => !empty(env('ROLLBAR_TOKEN')),
     
     // Person tracking
     'person_fn' => function() {

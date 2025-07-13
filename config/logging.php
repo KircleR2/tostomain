@@ -54,7 +54,7 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['single', 'rollbar'],
+            'channels' => ['single'],
             'ignore_exceptions' => false,
         ],
 
@@ -132,6 +132,7 @@ return [
             'handler' => \Rollbar\Laravel\MonologHandler::class,
             'access_token' => env('ROLLBAR_TOKEN'),
             'level' => env('ROLLBAR_LEVEL', 'error'),
+            'enabled' => env('ROLLBAR_TOKEN', false) !== false,
         ]
     ],
 

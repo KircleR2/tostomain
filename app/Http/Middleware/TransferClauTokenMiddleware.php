@@ -28,10 +28,14 @@ class TransferClauTokenMiddleware
             
             // If token exists in cookie but not in session, transfer it to session
             if (!$sessionToken && $cookieToken) {
-                Log::info('Transferring token from cookie to session', [
-                    'cookie_token_length' => strlen($cookieToken),
-                    'session_id' => $request->session()->getId()
-                ]);
+                try {
+                    Log::info('Transferring token from cookie to session', [
+                        'cookie_token_length' => strlen($cookieToken),
+                        'session_id' => $request->session()->getId()
+                    ]);
+                } catch (\Exception $e) {
+                    // Silent fail if logging fails
+                }
                 
                 // Store token in session
                 $request->session()->put('clauToken', $cookieToken);
@@ -39,10 +43,14 @@ class TransferClauTokenMiddleware
             }
             // If token exists in session but not in cookie, set the cookie
             else if ($sessionToken && !$cookieToken) {
-                Log::info('Transferring token from session to cookie', [
-                    'session_token_length' => strlen($sessionToken),
-                    'session_id' => $request->session()->getId()
-                ]);
+                try {
+                    Log::info('Transferring token from session to cookie', [
+                        'session_token_length' => strlen($sessionToken),
+                        'session_id' => $request->session()->getId()
+                    ]);
+                } catch (\Exception $e) {
+                    // Silent fail if logging fails
+                }
                 
                 // Set cookie with appropriate settings for production
                 $response = $next($request);
@@ -63,10 +71,14 @@ class TransferClauTokenMiddleware
             
             return $next($request);
         } catch (\Exception $e) {
-            Log::error('Error in TransferClauTokenMiddleware', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            try {
+                Log::error('Error in TransferClauTokenMiddleware', [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            } catch (\Exception $logException) {
+                // Silent fail if logging fails
+            }
             
             // Silent fail and continue
             return $next($request);
