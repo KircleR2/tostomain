@@ -21,22 +21,19 @@ use App\Services\ClauService;
 
 Route::get('/', [FrontController::class, 'index'])->name('front.index');
 Route::get('lang/{locale}', [FrontController::class, 'lang'])->name('front.locale');
-Route::get('nueva-sucursal-altaplaza', [FrontController::class, 'new_branch'])->name('front.new-branch');
+Route::get('nueva-sucursal', [FrontController::class, 'newBranch'])->name('front.new-branch');
 
-Route::group(['middleware' => ['clau.redirect']], static function () {
-    Route::get('/login', [AuthController::class, 'login'])->name('auth.login');
-    Route::get('/registro-club-elite', [AuthController::class, 'register'])->name('auth.register');
-    Route::get('/recuperar', [AuthController::class, 'recovery_password'])->name('auth.recovery-password');
+Route::get('login', [AuthController::class, 'login'])->name('auth.login');
+Route::get('register', [AuthController::class, 'register'])->name('auth.register');
+Route::get('recovery-password', [AuthController::class, 'recoveryPassword'])->name('auth.recovery-password');
+
+Route::group(['middleware' => ['clau.token']], static function () {
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 });
-
-Route::get('/logout', [AuthController::class, 'logout'])->name('auth.logout');
-Route::get('/dashboard', DashboardController::class)
-    ->middleware('clau.auth')
-    ->name('back.dashboard');
 
 Route::group(['as' => 'front.menu.', 'prefix' => 'menu'], static function () {
     Route::get('/', [FrontController::class, 'menu'])->name('index');
-    Route::get('/{menu}', [FrontController::class, 'menu'])
+    Route::get('/{menu}', [FrontController::class, 'menuShow'])
         ->name('show')
         ->whereIn('menu', collect(MenuValues::getList())->pluck('value')->toArray());
 });
@@ -146,6 +143,72 @@ if (config('app.debug')) {
                     'api_keys_set' => !empty(config('clau.api_auth_key')) && !empty(config('clau.api_pos_key')),
                 ],
             ]);
+        });
+        
+        // View application logs
+        Route::get('/logs', function () {
+            $logPath = storage_path('logs/laravel.log');
+            
+            if (!file_exists($logPath)) {
+                return response()->json([
+                    'error' => 'Log file not found',
+                    'path' => $logPath
+                ], 404);
+            }
+            
+            // Get the last 500 lines of the log file
+            $logs = [];
+            $file = new \SplFileObject($logPath, 'r');
+            $file->seek(PHP_INT_MAX); // Seek to the end of file
+            $totalLines = $file->key(); // Get total lines
+            
+            $linesToRead = min(500, $totalLines);
+            $startLine = max(0, $totalLines - $linesToRead);
+            
+            $file->seek($startLine);
+            
+            while (!$file->eof()) {
+                $line = $file->current();
+                if (trim($line) !== '') {
+                    $logs[] = $line;
+                }
+                $file->next();
+            }
+            
+            // Format as pre-formatted text for browser viewing
+            $content = implode("\n", $logs);
+            return response('<pre>' . htmlspecialchars($content) . '</pre>')
+                ->header('Content-Type', 'text/html');
+        });
+        
+        // View authentication-related logs only
+        Route::get('/auth-logs', function () {
+            $logPath = storage_path('logs/laravel.log');
+            
+            if (!file_exists($logPath)) {
+                return response()->json([
+                    'error' => 'Log file not found',
+                    'path' => $logPath
+                ], 404);
+            }
+            
+            // Search for authentication-related log entries
+            $authLogs = [];
+            $file = new \SplFileObject($logPath, 'r');
+            
+            while (!$file->eof()) {
+                $line = $file->current();
+                // Filter for auth-related log entries
+                if (preg_match('/(login|auth|token|clau|session)/i', $line)) {
+                    $authLogs[] = $line;
+                }
+                $file->next();
+            }
+            
+            // Format as pre-formatted text for browser viewing
+            $content = implode("\n", $authLogs);
+            return response('<pre>' . htmlspecialchars($content) . '</pre>')
+                ->header('Content-Type', 'text/html');
         });
     });
 }
