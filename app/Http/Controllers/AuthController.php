@@ -68,7 +68,7 @@ class AuthController extends Controller
             $domain,             // domain
             null,                // secure (null = auto-detect)
             false,               // httpOnly
-            true,                // raw
+            false,               // raw - set to false to avoid encoding issues
             'lax'                // sameSite
         ));
     }

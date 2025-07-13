@@ -92,7 +92,7 @@ class ApiAuthController extends Controller
                     $domain,             // domain (null for localhost)
                     null,                // secure (null = auto-detect)
                     false,               // httpOnly (false to allow JS access)
-                    true,                // raw
+                    false,               // raw - set to false to avoid encoding issues
                     'lax'                // sameSite
                 );
                 
@@ -207,7 +207,7 @@ class ApiAuthController extends Controller
                             $domain,
                             null,
                             false,
-                            true,
+                            false,  // raw - set to false to avoid encoding issues
                             'lax'
                         );
 

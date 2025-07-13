@@ -27,7 +27,10 @@ class TransferClauTokenMiddleware
             
             // Check if token already exists in session
             $sessionToken = $request->session()->get('clauToken');
-            $cookieToken = $request->cookie(self::COOKIE_NAME);
+            
+            // Check for cookie - direct access
+            $allCookies = $request->cookies->all();
+            $cookieToken = isset($allCookies[self::COOKIE_NAME]) ? $allCookies[self::COOKIE_NAME] : null;
             
             // If token exists in cookie but not in session, transfer it to session
             if (!$sessionToken && $cookieToken) {
@@ -79,7 +82,7 @@ class TransferClauTokenMiddleware
                     $domain,             // domain
                     null,                // secure (null = auto-detect)
                     false,               // httpOnly (false to allow JS access)
-                    true,                // raw
+                    false,               // raw - set to false to avoid encoding issues
                     'lax'                // sameSite
                 ));
             }

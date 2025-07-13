@@ -28,8 +28,9 @@ class ClauTokenMiddleware
             // Get token from session
             $sessionToken = $request->session()->get('clauToken');
             
-            // Check for backup cookie
-            $cookieToken = $request->cookie(self::COOKIE_NAME);
+            // Check for backup cookie - direct access
+            $allCookies = $request->cookies->all();
+            $cookieToken = isset($allCookies[self::COOKIE_NAME]) ? $allCookies[self::COOKIE_NAME] : null;
             
             // Debug session and cookie state
             try {
@@ -39,7 +40,7 @@ class ClauTokenMiddleware
                     'cookie_token_exists' => !empty($cookieToken),
                     'session_id' => $request->session()->getId(),
                     'cookie_name' => self::COOKIE_NAME,
-                    'all_cookies' => array_keys($request->cookies->all())
+                    'all_cookies' => array_keys($allCookies)
                 ]);
             } catch (\Exception $e) {
                 // Silent fail if logging fails
@@ -105,7 +106,7 @@ class ClauTokenMiddleware
                     $domain,             // domain
                     null,                // secure (null = auto-detect)
                     false,               // httpOnly (false to allow JS access)
-                    true,                // raw
+                    false,               // raw - set to false to avoid encoding issues
                     'lax'                // sameSite
                 ));
             }
