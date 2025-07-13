@@ -79,14 +79,25 @@ class ClauTokenMiddleware
                     // Silent fail if logging fails
                 }
                 
-                $domain = parse_url(config('app.url'), PHP_URL_HOST) ?: null;
+                $domain = parse_url(config('app.url'), PHP_URL_HOST);
+                
+                // If domain starts with www, make cookie available to subdomains
+                if (strpos($domain, 'www.') === 0) {
+                    $domain = substr($domain, 4); // Remove www.
+                }
+                
+                // For localhost or IP testing
+                if ($domain === 'localhost' || filter_var($domain, FILTER_VALIDATE_IP)) {
+                    $domain = null;
+                }
+                
                 $response->withCookie(cookie(
                     'clau_token',        // name
                     $sessionToken,       // value
                     120,                 // minutes (2 hours)
                     '/',                 // path
                     $domain,             // domain
-                    $request->secure(),  // secure
+                    null,                // secure (null = auto-detect)
                     false,               // httpOnly (false to allow JS access)
                     true,                // raw
                     'lax'                // sameSite

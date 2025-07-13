@@ -71,14 +71,25 @@ class ApiAuthController extends Controller
                 $request->session()->save();
                 
                 // Set cookie with appropriate settings for production
-                $domain = parse_url(config('app.url'), PHP_URL_HOST) ?: null;
+                $domain = parse_url(config('app.url'), PHP_URL_HOST);
+                
+                // If domain starts with www, make cookie available to subdomains
+                if (strpos($domain, 'www.') === 0) {
+                    $domain = substr($domain, 4); // Remove www.
+                }
+                
+                // For localhost or IP testing
+                if ($domain === 'localhost' || filter_var($domain, FILTER_VALIDATE_IP)) {
+                    $domain = null;
+                }
+                
                 $cookie = cookie(
                     'clau_token',        // name
                     $responseData['token'], // value
                     120,                 // minutes (2 hours)
                     '/',                 // path
-                    $domain,             // domain
-                    $request->secure(),  // secure
+                    $domain,             // domain (null for localhost)
+                    null,                // secure (null = auto-detect)
                     false,               // httpOnly (false to allow JS access)
                     true,                // raw
                     'lax'                // sameSite
@@ -91,7 +102,8 @@ class ApiAuthController extends Controller
                         'token_stored' => $request->session()->has('clauToken'),
                         'token_length' => strlen($responseData['token']),
                         'session_driver' => config('session.driver'),
-                        'cookie_set' => true
+                        'cookie_set' => true,
+                        'domain' => $domain
                     ]);
                 } catch (\Exception $e) {
                     // Silent fail if logging fails
@@ -174,11 +186,33 @@ class ApiAuthController extends Controller
 
                     if (isset($responseLoginData['codigoRespuesta']) && $responseLoginData['codigoRespuesta'] === 0) {
                         $request->session()->put('clauToken', $responseLoginData['token']);
+                        $request->session()->save();
+                        
+                        // Set cookie here as well
+                        $domain = parse_url(config('app.url'), PHP_URL_HOST);
+                        if (strpos($domain, 'www.') === 0) {
+                            $domain = substr($domain, 4);
+                        }
+                        if ($domain === 'localhost' || filter_var($domain, FILTER_VALIDATE_IP)) {
+                            $domain = null;
+                        }
+                        
+                        $cookie = cookie(
+                            'clau_token',
+                            $responseLoginData['token'],
+                            120,
+                            '/',
+                            $domain,
+                            null,
+                            false,
+                            true,
+                            'lax'
+                        );
 
                         return response()->json([
                             'code' => 0,
                             'message' => 'Registro completado correctamente',
-                        ])->setStatusCode(Response::HTTP_OK);
+                        ])->setStatusCode(Response::HTTP_OK)->withCookie($cookie);
                     }
                 }
             }

@@ -44,15 +44,27 @@ class AuthController extends Controller
         // Create a response that will delete the cookie
         $response = redirect(route('auth.login'));
         
+        // Get domain for cookie
+        $domain = parse_url(config('app.url'), PHP_URL_HOST);
+        
+        // If domain starts with www, make cookie available to subdomains
+        if (strpos($domain, 'www.') === 0) {
+            $domain = substr($domain, 4); // Remove www.
+        }
+        
+        // For localhost or IP testing
+        if ($domain === 'localhost' || filter_var($domain, FILTER_VALIDATE_IP)) {
+            $domain = null;
+        }
+        
         // Delete the cookie by setting it with a past expiration
-        $domain = parse_url(config('app.url'), PHP_URL_HOST) ?: null;
         return $response->withCookie(cookie(
             'clau_token',        // name
             '',                  // empty value
             -1,                  // expired (in the past)
             '/',                 // path
             $domain,             // domain
-            $request->secure(),  // secure
+            null,                // secure (null = auto-detect)
             false,               // httpOnly
             true,                // raw
             'lax'                // sameSite

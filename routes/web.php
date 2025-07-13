@@ -41,6 +41,42 @@ Route::get('/check-session', function(\Illuminate\Http\Request $request) {
     return response()->json($sessionData);
 });
 
+// Test cookie route
+Route::get('/test-cookie', function(\Illuminate\Http\Request $request) {
+    // Get domain for cookie
+    $domain = parse_url(config('app.url'), PHP_URL_HOST);
+    
+    // If domain starts with www, make cookie available to subdomains
+    if (strpos($domain, 'www.') === 0) {
+        $domain = substr($domain, 4); // Remove www.
+    }
+    
+    // For localhost or IP testing
+    if ($domain === 'localhost' || filter_var($domain, FILTER_VALIDATE_IP)) {
+        $domain = null;
+    }
+    
+    $response = response()->json([
+        'message' => 'Test cookie set',
+        'domain' => $domain,
+        'app_url' => config('app.url'),
+        'request_secure' => $request->secure(),
+        'request_host' => $request->getHost(),
+    ]);
+    
+    return $response->withCookie(cookie(
+        'test_cookie',      // name
+        'test_value',       // value
+        60,                 // minutes
+        '/',                // path
+        $domain,            // domain
+        null,               // secure (null = auto-detect)
+        false,              // httpOnly
+        true,               // raw
+        'lax'               // sameSite
+    ));
+});
+
 Route::group(['middleware' => ['clau.redirect']], static function () {
     Route::get('/login', [AuthController::class, 'login'])->name('auth.login');
     Route::get('/registro-club-elite', [AuthController::class, 'register'])->name('auth.register');
