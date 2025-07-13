@@ -21,19 +21,22 @@ use App\Services\ClauService;
 
 Route::get('/', [FrontController::class, 'index'])->name('front.index');
 Route::get('lang/{locale}', [FrontController::class, 'lang'])->name('front.locale');
-Route::get('nueva-sucursal', [FrontController::class, 'newBranch'])->name('front.new-branch');
+Route::get('nueva-sucursal-altaplaza', [FrontController::class, 'new_branch'])->name('front.new-branch');
 
-Route::get('login', [AuthController::class, 'login'])->name('auth.login');
-Route::get('register', [AuthController::class, 'register'])->name('auth.register');
-Route::get('recovery-password', [AuthController::class, 'recoveryPassword'])->name('auth.recovery-password');
-
-Route::group(['middleware' => ['clau.token']], static function () {
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+Route::group(['middleware' => ['clau.redirect']], static function () {
+    Route::get('/login', [AuthController::class, 'login'])->name('auth.login');
+    Route::get('/registro-club-elite', [AuthController::class, 'register'])->name('auth.register');
+    Route::get('/recuperar', [AuthController::class, 'recovery_password'])->name('auth.recovery-password');
 });
+
+Route::get('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+Route::get('/dashboard', DashboardController::class)
+    ->middleware('clau.auth')
+    ->name('back.dashboard');
 
 Route::group(['as' => 'front.menu.', 'prefix' => 'menu'], static function () {
     Route::get('/', [FrontController::class, 'menu'])->name('index');
-    Route::get('/{menu}', [FrontController::class, 'menuShow'])
+    Route::get('/{menu}', [FrontController::class, 'menu'])
         ->name('show')
         ->whereIn('menu', collect(MenuValues::getList())->pluck('value')->toArray());
 });
@@ -121,6 +124,47 @@ if (config('app.debug')) {
             }
         });
         
+        // Dashboard API test
+        Route::get('/dashboard-api', function (\Illuminate\Http\Request $request) {
+            try {
+                $token = $request->session()->get('clauToken');
+                if (empty($token)) {
+                    $token = $request->cookie('clau_token');
+                }
+                
+                if (empty($token)) {
+                    return response()->json([
+                        'error' => 'No token found in session or cookie',
+                        'session_id' => $request->session()->getId(),
+                        'session_keys' => array_keys($request->session()->all()),
+                        'cookies' => array_keys($request->cookies->all()),
+                    ], 401);
+                }
+                
+                $clauService = app(ClauService::class);
+                $response = $clauService->getUserData($token);
+                
+                return response()->json([
+                    'token_length' => strlen($token),
+                    'api_response_status' => $response->status(),
+                    'api_response_successful' => $response->successful(),
+                    'api_response_body' => $response->json(),
+                    'api_response_headers' => $response->headers(),
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Dashboard API test failed', [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                return response()->json([
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ], 500);
+            }
+        });
+        
         // Environment variables check
         Route::get('/env', function () {
             return response()->json([
@@ -145,70 +189,12 @@ if (config('app.debug')) {
             ]);
         });
         
-        // View application logs
+        // View logs
         Route::get('/logs', function () {
             $logPath = storage_path('logs/laravel.log');
-            
-            if (!file_exists($logPath)) {
-                return response()->json([
-                    'error' => 'Log file not found',
-                    'path' => $logPath
-                ], 404);
-            }
-            
-            // Get the last 500 lines of the log file
-            $logs = [];
-            $file = new \SplFileObject($logPath, 'r');
-            $file->seek(PHP_INT_MAX); // Seek to the end of file
-            $totalLines = $file->key(); // Get total lines
-            
-            $linesToRead = min(500, $totalLines);
-            $startLine = max(0, $totalLines - $linesToRead);
-            
-            $file->seek($startLine);
-            
-            while (!$file->eof()) {
-                $line = $file->current();
-                if (trim($line) !== '') {
-                    $logs[] = $line;
-                }
-                $file->next();
-            }
-            
-            // Format as pre-formatted text for browser viewing
-            $content = implode("\n", $logs);
-            return response('<pre>' . htmlspecialchars($content) . '</pre>')
-                ->header('Content-Type', 'text/html');
-        });
-        
-        // View authentication-related logs only
-        Route::get('/auth-logs', function () {
-            $logPath = storage_path('logs/laravel.log');
-            
-            if (!file_exists($logPath)) {
-                return response()->json([
-                    'error' => 'Log file not found',
-                    'path' => $logPath
-                ], 404);
-            }
-            
-            // Search for authentication-related log entries
-            $authLogs = [];
-            $file = new \SplFileObject($logPath, 'r');
-            
-            while (!$file->eof()) {
-                $line = $file->current();
-                // Filter for auth-related log entries
-                if (preg_match('/(login|auth|token|clau|session)/i', $line)) {
-                    $authLogs[] = $line;
-                }
-                $file->next();
-            }
-            
-            // Format as pre-formatted text for browser viewing
-            $content = implode("\n", $authLogs);
-            return response('<pre>' . htmlspecialchars($content) . '</pre>')
-                ->header('Content-Type', 'text/html');
+            $logContent = file_exists($logPath) ? file_get_contents($logPath) : 'Log file not found';
+            $logLines = array_slice(explode("\n", $logContent), -500); // Get last 500 lines
+            return response($logLines, 200)->header('Content-Type', 'text/plain');
         });
     });
 }

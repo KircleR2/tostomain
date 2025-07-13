@@ -12,6 +12,7 @@ const isSuccess = ref(false)
 const errorMessage = ref(null)
 const errorClose = ref(null)
 const errorText = ref(null)
+const apiError = ref(null)
 
 const userInitialData = {
   fullname: '',
@@ -58,6 +59,7 @@ async function getUserDataRequest () {
 
 function getUserData () {
   fetchDashboard.value = true
+  apiError.value = null
   setTimeout(() => {
     getUserDataRequest()
     .then(response => {
@@ -69,10 +71,16 @@ function getUserData () {
         isSuccess.value = true
       } else {
         isSuccess.value = false
+        apiError.value = response.data.message || 'Unknown error occurred'
       }
     })
-    .catch(() => {
-      window.location.href = '/login'
+    .catch((error) => {
+      fetchDashboard.value = false
+      console.error('Dashboard API error:', error)
+      apiError.value = error.response?.data?.message || 'Failed to load user data. Please try logging in again.'
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 5000)
     })
   }, 1500)
 }
@@ -89,8 +97,12 @@ function getStorePoints () {
         products.value = []
       }
     })
-    .catch(() => {
-      window.location.href = '/login'
+    .catch((error) => {
+      fetchStorePoints.value = false
+      console.error('Store points API error:', error)
+      if (error.response?.status === 401) {
+        window.location.href = '/login'
+      }
     })
   }, 1500)
 }
@@ -107,8 +119,12 @@ function getGifts () {
         gifts.value = []
       }
     })
-    .catch(() => {
-      window.location.href = '/login'
+    .catch((error) => {
+      fetchGifts.value = false
+      console.error('Gifts API error:', error)
+      if (error.response?.status === 401) {
+        window.location.href = '/login'
+      }
     })
   }, 1500)
 }
@@ -192,7 +208,28 @@ async function shareRef () {
     </div>
     <div>Cargando, por favor espere...</div>
   </div>
-  <div v-show="!fetchDashboard">
+  
+  <!-- API Error Message -->
+  <div v-if="apiError" class="flex flex-col items-center justify-center relative w-full h-screen space-y-11 overflow-hidden">
+    <div class="absolute top-0 left-0 w-full flex justify-between opacity-5 -z-10">
+      <div><img class="w-full h-screen" src="images/bg-coffee-elements.svg" alt=""></div>
+      <div><img class="w-[500px] mt-16" src="images/right-coffee.svg" alt=""></div>
+    </div>
+    <div class="absolute bg-[#FFF0E5] top-0 left-0 w-full h-full -z-20"></div>
+    <div>
+      <img class="w-[180px]" src="images/logo.svg" alt="Logo">
+    </div>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-md mx-auto">
+      <h2 class="font-bold text-lg mb-2">Error al cargar datos</h2>
+      <p>{{ apiError }}</p>
+      <p class="mt-4 text-sm">Redirigiendo al login en 5 segundos...</p>
+    </div>
+    <div>
+      <a href="/login" class="bg-[#F89C24] text-white px-4 py-2 rounded">Ir al login</a>
+    </div>
+  </div>
+  
+  <div v-show="!fetchDashboard && !apiError">
     <nav class="nav menu-dashboard fixed top-0">
       <div class="container mx-auto flex items-center justify-between py-7 px-6 sm:px-0 md:px-0">
         <div class="flex items-center">
@@ -248,7 +285,7 @@ async function shareRef () {
           <div class="w-[2px] bg-black h-[60px] opacity-5"></div>
           <div class="flex flex-row items-center space-x-2">
             <div>
-              <svg class="w-[30px] fill-[#F89C24]" viewBox="0 0 56 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M45.8081 1.43646L45.7917 1.41719C38.909 -1.33868 29.0595 -0.088765 19.5518 5.28532C5.03734 13.4758 -3.19337 28.4693 1.16809 38.766C5.52955 49.0599 20.8288 50.7585 35.3406 42.5543C46.6093 36.1891 54.0935 25.7327 54.8318 16.5538H54.84C56.5408 4.54473 45.9175 1.46399 45.8081 1.43921V1.43646ZM30.6865 23.2687C16.8611 25.284 9.9785 35.074 9.54099 34.0306C9.03238 32.8413 13.3063 24.6122 27.9603 21.2919C42.2806 18.046 48.2964 11.7001 51.3371 8.36055C51.5286 8.14856 51.6626 7.95309 51.7719 7.76037C52.3872 8.76801 52.8766 9.54164 52.8466 10.9567C49.5324 14.7395 43.7272 21.3718 30.6838 23.2659L30.6865 23.2687Z" fill="#F99C25"/></svg>
+              <svg class="w-[30px] fill-[#F89C24]" viewBox="0 0 56 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M45.8081 1.43646L45.7917 1.41719C38.909 -1.33868 29.0595 -0.088765 19.5518 5.28532C5.05734 13.4758 -3.19337 28.4693 1.16809 38.766C5.52955 49.0599 20.8288 50.7585 35.3406 42.5543C46.6093 36.1891 54.0935 25.7327 54.8318 16.5538H54.84C56.5408 4.54473 45.9175 1.46399 45.8081 1.43921V1.43646ZM30.6865 23.2687C16.8611 25.284 9.9785 35.074 9.54099 34.0306C9.03238 32.8413 13.3063 24.6122 27.9603 21.2919C42.2806 18.046 48.2964 11.7001 51.3371 8.36055C51.5286 8.14856 51.6626 7.95309 51.7719 7.76037C52.3872 8.76801 52.8766 9.54164 52.8466 10.9567C49.5324 14.7395 43.7272 21.3718 30.6838 23.2659L30.6865 23.2687Z" fill="#F99C25"/></svg>
             </div>
             <div class="text-sm md:text-2xl"><span class="font-black">{{ formatNumber(userData.points) }}</span> Puntos</div>
           </div>
