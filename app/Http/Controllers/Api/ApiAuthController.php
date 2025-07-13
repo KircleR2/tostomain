@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\ClauTokenMiddleware;
 use App\Services\ClauService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -84,7 +85,7 @@ class ApiAuthController extends Controller
                 }
                 
                 $cookie = cookie(
-                    'clau_token',        // name
+                    ClauTokenMiddleware::COOKIE_NAME, // name
                     $responseData['token'], // value
                     120,                 // minutes (2 hours)
                     '/',                 // path
@@ -103,7 +104,8 @@ class ApiAuthController extends Controller
                         'token_length' => strlen($responseData['token']),
                         'session_driver' => config('session.driver'),
                         'cookie_set' => true,
-                        'domain' => $domain
+                        'domain' => $domain,
+                        'cookie_name' => ClauTokenMiddleware::COOKIE_NAME
                     ]);
                 } catch (\Exception $e) {
                     // Silent fail if logging fails
@@ -198,7 +200,7 @@ class ApiAuthController extends Controller
                         }
                         
                         $cookie = cookie(
-                            'clau_token',
+                            ClauTokenMiddleware::COOKIE_NAME,
                             $responseLoginData['token'],
                             120,
                             '/',

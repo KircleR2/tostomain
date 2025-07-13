@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiagnosticController;
 use App\Http\Controllers\FrontController;
+use App\Http\Middleware\ClauTokenMiddleware;
 use App\Values\MenuValues;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
@@ -26,14 +27,16 @@ Route::get('nueva-sucursal-altaplaza', [FrontController::class, 'new_branch'])->
 
 // Direct session check route - no middleware
 Route::get('/check-session', function(\Illuminate\Http\Request $request) {
+    $cookieName = ClauTokenMiddleware::COOKIE_NAME;
     $sessionData = [
         'has_session' => $request->hasSession(),
         'session_id' => $request->hasSession() ? $request->session()->getId() : null,
         'clau_token_exists' => $request->hasSession() ? $request->session()->has('clauToken') : false,
         'clau_token_length' => $request->hasSession() && $request->session()->has('clauToken') ? 
             strlen($request->session()->get('clauToken')) : 0,
-        'cookie_token_exists' => $request->hasCookie('clau_token'),
-        'cookie_token_length' => $request->hasCookie('clau_token') ? strlen($request->cookie('clau_token')) : 0,
+        'cookie_token_exists' => $request->hasCookie($cookieName),
+        'cookie_token_length' => $request->hasCookie($cookieName) ? strlen($request->cookie($cookieName)) : 0,
+        'cookie_name' => $cookieName,
         'all_cookies' => array_keys($request->cookies->all()),
         'all_session' => $request->hasSession() ? array_keys($request->session()->all()) : [],
     ];

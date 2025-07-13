@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\ClauTokenMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
@@ -31,7 +32,8 @@ class AuthController extends Controller
             Log::debug('Logging out user', [
                 'has_session' => $request->hasSession(),
                 'token_exists' => $request->session()->has('clauToken'),
-                'session_id' => $request->session()->getId()
+                'session_id' => $request->session()->getId(),
+                'cookie_name' => ClauTokenMiddleware::COOKIE_NAME
             ]);
         } catch (\Exception $e) {
             // Silent fail if logging fails
@@ -59,7 +61,7 @@ class AuthController extends Controller
         
         // Delete the cookie by setting it with a past expiration
         return $response->withCookie(cookie(
-            'clau_token',        // name
+            ClauTokenMiddleware::COOKIE_NAME, // name
             '',                  // empty value
             -1,                  // expired (in the past)
             '/',                 // path

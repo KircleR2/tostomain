@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Log;
 
 class ClauTokenMiddleware
 {
+    // Cookie name constant for consistency
+    const COOKIE_NAME = 'clau_token';
+    
     public function handle (Request $request, Closure $next)
     {
         try {
@@ -26,7 +29,7 @@ class ClauTokenMiddleware
             $sessionToken = $request->session()->get('clauToken');
             
             // Check for backup cookie
-            $cookieToken = $request->cookie('clau_token');
+            $cookieToken = $request->cookie(self::COOKIE_NAME);
             
             // Debug session and cookie state
             try {
@@ -34,7 +37,9 @@ class ClauTokenMiddleware
                     'has_session' => $request->hasSession(),
                     'session_token_exists' => !empty($sessionToken),
                     'cookie_token_exists' => !empty($cookieToken),
-                    'session_id' => $request->session()->getId()
+                    'session_id' => $request->session()->getId(),
+                    'cookie_name' => self::COOKIE_NAME,
+                    'all_cookies' => array_keys($request->cookies->all())
                 ]);
             } catch (\Exception $e) {
                 // Silent fail if logging fails
@@ -73,7 +78,8 @@ class ClauTokenMiddleware
                 try {
                     Log::info('Setting cookie from session token', [
                         'session_token_length' => strlen($sessionToken),
-                        'session_id' => $request->session()->getId()
+                        'session_id' => $request->session()->getId(),
+                        'cookie_name' => self::COOKIE_NAME
                     ]);
                 } catch (\Exception $e) {
                     // Silent fail if logging fails
@@ -92,7 +98,7 @@ class ClauTokenMiddleware
                 }
                 
                 $response->withCookie(cookie(
-                    'clau_token',        // name
+                    self::COOKIE_NAME,   // name
                     $sessionToken,       // value
                     120,                 // minutes (2 hours)
                     '/',                 // path

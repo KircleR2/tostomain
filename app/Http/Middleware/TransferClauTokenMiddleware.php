@@ -9,6 +9,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TransferClauTokenMiddleware
 {
+    // Cookie name constant for consistency
+    const COOKIE_NAME = 'clau_token';
+    
     /**
      * Handle an incoming request.
      *
@@ -24,14 +27,15 @@ class TransferClauTokenMiddleware
             
             // Check if token already exists in session
             $sessionToken = $request->session()->get('clauToken');
-            $cookieToken = $request->cookie('clau_token');
+            $cookieToken = $request->cookie(self::COOKIE_NAME);
             
             // If token exists in cookie but not in session, transfer it to session
             if (!$sessionToken && $cookieToken) {
                 try {
                     Log::info('Transferring token from cookie to session', [
                         'cookie_token_length' => strlen($cookieToken),
-                        'session_id' => $request->session()->getId()
+                        'session_id' => $request->session()->getId(),
+                        'cookie_name' => self::COOKIE_NAME
                     ]);
                 } catch (\Exception $e) {
                     // Silent fail if logging fails
@@ -46,7 +50,8 @@ class TransferClauTokenMiddleware
                 try {
                     Log::info('Transferring token from session to cookie', [
                         'session_token_length' => strlen($sessionToken),
-                        'session_id' => $request->session()->getId()
+                        'session_id' => $request->session()->getId(),
+                        'cookie_name' => self::COOKIE_NAME
                     ]);
                 } catch (\Exception $e) {
                     // Silent fail if logging fails
@@ -67,7 +72,7 @@ class TransferClauTokenMiddleware
                 }
                 
                 return $response->withCookie(cookie(
-                    'clau_token',        // name
+                    self::COOKIE_NAME,   // name
                     $sessionToken,       // value
                     120,                 // minutes (2 hours)
                     '/',                 // path
