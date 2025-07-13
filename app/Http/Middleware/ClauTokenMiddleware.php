@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class ClauTokenMiddleware
 {
@@ -13,6 +14,11 @@ class ClauTokenMiddleware
         try {
             // Check if session exists
             if (!$request->hasSession()) {
+                try {
+                    Log::warning('Dashboard access attempted without session');
+                } catch (\Exception $e) {
+                    // Silent fail if logging fails
+                }
                 return redirect(route('auth.login'))->with('error', 'Session not available');
             }
             
@@ -22,19 +28,82 @@ class ClauTokenMiddleware
             // Check for backup cookie
             $cookieToken = $request->cookie('clau_token');
             
+            // Debug session and cookie state
+            try {
+                Log::debug('ClauTokenMiddleware check', [
+                    'has_session' => $request->hasSession(),
+                    'session_token_exists' => !empty($sessionToken),
+                    'cookie_token_exists' => !empty($cookieToken),
+                    'session_id' => $request->session()->getId()
+                ]);
+            } catch (\Exception $e) {
+                // Silent fail if logging fails
+            }
+            
             // If token exists in cookie but not in session, restore it to session
             if (!$sessionToken && $cookieToken) {
+                try {
+                    Log::info('Restoring token from cookie to session', [
+                        'cookie_token_length' => strlen($cookieToken),
+                        'session_id' => $request->session()->getId()
+                    ]);
+                } catch (\Exception $e) {
+                    // Silent fail if logging fails
+                }
+                
                 $request->session()->put('clauToken', $cookieToken);
                 $request->session()->save();
                 $sessionToken = $cookieToken;
             }
             
             if (!$sessionToken) {
+                try {
+                    Log::warning('Dashboard access attempted without token');
+                } catch (\Exception $e) {
+                    // Silent fail if logging fails
+                }
                 return redirect(route('auth.login'))->with('error', 'Please login to continue');
             }
             
-            return $next($request);
+            // Set the cookie again to ensure it's available
+            $response = $next($request);
+            
+            // Only set cookie if it doesn't exist or is different from session token
+            if (!$cookieToken || $cookieToken !== $sessionToken) {
+                try {
+                    Log::info('Setting cookie from session token', [
+                        'session_token_length' => strlen($sessionToken),
+                        'session_id' => $request->session()->getId()
+                    ]);
+                } catch (\Exception $e) {
+                    // Silent fail if logging fails
+                }
+                
+                $domain = parse_url(config('app.url'), PHP_URL_HOST) ?: null;
+                $response->withCookie(cookie(
+                    'clau_token',        // name
+                    $sessionToken,       // value
+                    120,                 // minutes (2 hours)
+                    '/',                 // path
+                    $domain,             // domain
+                    $request->secure(),  // secure
+                    false,               // httpOnly (false to allow JS access)
+                    true,                // raw
+                    'lax'                // sameSite
+                ));
+            }
+            
+            return $response;
         } catch (\Exception $e) {
+            try {
+                Log::error('Error in ClauTokenMiddleware', [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            } catch (\Exception $logException) {
+                // Silent fail if logging fails
+            }
+            
             return redirect(route('auth.login'))->with('error', 'An error occurred. Please try again.');
         }
     }

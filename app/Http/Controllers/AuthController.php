@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cookie;
 
 class AuthController extends Controller
 {
@@ -25,17 +26,36 @@ class AuthController extends Controller
     
     public function logout(Request $request)
     {
-        // Log before logout
-        Log::debug('Logging out user', [
-            'has_session' => $request->hasSession(),
-            'token_exists' => $request->session()->has('clauToken'),
-            'session_id' => $request->session()->getId()
-        ]);
+        try {
+            // Log before logout
+            Log::debug('Logging out user', [
+                'has_session' => $request->hasSession(),
+                'token_exists' => $request->session()->has('clauToken'),
+                'session_id' => $request->session()->getId()
+            ]);
+        } catch (\Exception $e) {
+            // Silent fail if logging fails
+        }
         
         // Remove token from session
         $request->session()->forget('clauToken');
         $request->session()->save();
         
-        return redirect(route('auth.login'));
+        // Create a response that will delete the cookie
+        $response = redirect(route('auth.login'));
+        
+        // Delete the cookie by setting it with a past expiration
+        $domain = parse_url(config('app.url'), PHP_URL_HOST) ?: null;
+        return $response->withCookie(cookie(
+            'clau_token',        // name
+            '',                  // empty value
+            -1,                  // expired (in the past)
+            '/',                 // path
+            $domain,             // domain
+            $request->secure(),  // secure
+            false,               // httpOnly
+            true,                // raw
+            'lax'                // sameSite
+        ));
     }
 }
