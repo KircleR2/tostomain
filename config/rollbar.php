@@ -6,39 +6,59 @@ return [
     | Rollbar Configuration
     |--------------------------------------------------------------------------
     |
-    | This file is for configuring the Rollbar service which is used for
-    | error tracking and logging in the application.
+    | This file is for configuring the Rollbar service which can be used
+    | to log errors. This configuration follows the format expected by
+    | the Rollbar PHP SDK.
     |
     */
 
-    // Rollbar access token
     'access_token' => env('ROLLBAR_TOKEN'),
-
-    // Capture source code for stack traces
-    'capture_source' => true,
-
-    // Minimum log level to report to Rollbar
-    'level' => env('ROLLBAR_LEVEL', 'error'),
-
-    // Whether Rollbar is enabled
-    'enabled' => env('ROLLBAR_ENABLED', true),
-
-    // Don't collect user information
-    'capture_email' => false,
-    'capture_username' => false,
-
-    // Environment name
-    'environment' => env('APP_ENV', 'production'),
-
-    // Root directory for source code
+    'environment' => env('APP_ENV'),
+    
     'root' => base_path(),
-
-    // Additional configuration
+    
+    // Only report errors equal to or above this level
+    'minimum_level' => env('ROLLBAR_LEVEL', 'error'),
+    
+    // Capture bindings on SQL queries
+    'capture_sql_bindings' => true,
+    
+    // Capture Laravel logs
+    'capture_log' => true,
+    
+    // Capture Laravel dumps
+    'capture_dumps' => true,
+    
+    // Capture Laravel console command outputs
+    'capture_command_output' => true,
+    
+    // Capture uncaught exceptions
+    'capture_uncaught' => true,
+    
+    // Enable/disable reporting
+    'enabled' => env('ROLLBAR_TOKEN') ? true : false,
+    
+    // Person tracking
+    'person_fn' => function() {
+        if (auth()->check()) {
+            return [
+                'id' => auth()->user()->id,
+                'username' => auth()->user()->email,
+                'email' => auth()->user()->email,
+            ];
+        }
+        return null;
+    },
+    
     'scrub_fields' => [
         'password',
         'password_confirmation',
         'credit_card',
-        'auth_token',
-        'secret',
+        'cvv',
+        'card_number',
     ],
+    
+    'timeout' => 3,
+    
+    'max_items' => 10,
 ]; 

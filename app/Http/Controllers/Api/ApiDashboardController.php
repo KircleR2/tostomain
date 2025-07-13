@@ -26,6 +26,9 @@ class ApiDashboardController extends Controller
 
         if ($response->successful()) {
             $responseData = $response->json();
+            
+            // Debug the response structure
+            \Log::debug('Received user data response', ['status' => $response->status(), 'response_data' => $responseData]);
 
             // Check if the response contains the expected keys
             if (isset($responseData['CodRes']) && $responseData['CodRes'] === 0 && isset($responseData['ArrRes'])) {
@@ -44,6 +47,7 @@ class ApiDashboardController extends Controller
             }
             
             // If we get here, the response format is unexpected
+            \Log::warning('Unexpected API response format', ['response' => $responseData]);
             $request->session()->remove('clauToken');
             return response()->json([
                 'code' => $responseData['CodRes'] ?? 500,
@@ -51,6 +55,7 @@ class ApiDashboardController extends Controller
             ])->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
 
+        \Log::error('API request failed', ['status' => $response->status(), 'body' => $response->body()]);
         return response()->json([
             'message' => 'Error en la solicitud a la API',
         ])->setStatusCode($response->status());
