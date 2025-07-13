@@ -20,13 +20,6 @@ class ApiAuthController extends Controller
 
     public function login (Request $request)
     {
-        Log::info('Login attempt', [
-            'email' => $request->input('email'),
-            'has_password' => !empty($request->input('password')),
-            'ip' => $request->ip(),
-            'user_agent' => $request->header('User-Agent')
-        ]);
-
         $this->validate($request, [
             'email' => 'required',
             'password' => 'required',
@@ -37,19 +30,7 @@ class ApiAuthController extends Controller
             'password' => $request->input('password'),
         ];
 
-        Log::debug('Sending login request to Clau API', [
-            'email' => $login_data['email'],
-            'api_url' => config('clau.api_url'),
-            'appid' => config('clau.appid'),
-        ]);
-
         $response = $this->clauService->login($login_data['email'], $login_data['password']);
-        
-        Log::debug('Received response from Clau API', [
-            'status' => $response->status(),
-            'successful' => $response->successful(),
-            'body' => $response->body(),
-        ]);
         
         if ($response->successful()) {
             $responseData = $response->json();
@@ -57,7 +38,6 @@ class ApiAuthController extends Controller
             if (isset($responseData['codigoRespuesta']) && $responseData['codigoRespuesta'] === 0) {
                 // Check if session exists
                 if (!$request->hasSession()) {
-                    Log::error('No session available in API login');
                     return response()->json([
                         'code' => 500,
                         'message' => 'Session not available',
@@ -73,39 +53,17 @@ class ApiAuthController extends Controller
                 // Set cookie manually as backup
                 $cookie = cookie('clau_token', $responseData['token'], 120, '/', null, true, false);
                 
-                // Log for debugging
-                Log::debug('Login successful, token stored in session', [
-                    'has_session' => $request->hasSession(),
-                    'session_id' => $request->session()->getId(),
-                    'token_stored' => !empty($responseData['token']),
-                    'token_length' => strlen($responseData['token']),
-                    'session_driver' => config('session.driver'),
-                    'cookie_set' => true
-                ]);
-                
                 return response()->json([
                     'code' => 0,
                     'message' => 'Haz iniciado sesión correctamente',
                 ])->setStatusCode(Response::HTTP_OK)->withCookie($cookie);
             }
 
-            Log::warning('Login failed: API returned error', [
-                'code' => $responseData['codigoRespuesta'] ?? 'unknown',
-                'message' => $responseData['msj'] ?? 'No message provided',
-                'email' => $login_data['email']
-            ]);
-
             return response()->json([
                 'code' => $responseData['codigoRespuesta'],
                 'message' => $responseData['msj'],
             ])->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
-
-        Log::error('Login failed: API request error', [
-            'status' => $response->status(),
-            'body' => $response->body(),
-            'email' => $login_data['email']
-        ]);
 
         return response()->json([
             'message' => 'Error en la solicitud a la API',

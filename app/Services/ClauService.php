@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class ClauService
 {
@@ -37,15 +36,6 @@ class ClauService
         ];
 
         $endpoint = $this->API_URL . '/ext/v2/iniciar_sesion_ext';
-        
-        Log::debug('ClauService: Testing API connection', [
-            'endpoint' => $endpoint,
-            'headers' => array_keys($headers),
-            'appid_value' => $this->APPID,
-            'api_url_config' => $this->API_URL,
-            'api_auth_key_length' => strlen($this->API_AUTH_KEY),
-            'api_pos_key_length' => strlen($this->API_POS_KEY),
-        ]);
 
         try {
             // First, try a simple GET request to the base URL to check if it's reachable
@@ -72,12 +62,6 @@ class ClauService
             
             return $result;
         } catch (\Exception $e) {
-            Log::error('ClauService: Exception during connection test', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'endpoint' => $endpoint
-            ]);
-            
             return [
                 'error' => true,
                 'message' => $e->getMessage(),
@@ -97,14 +81,6 @@ class ClauService
         ];
 
         $endpoint = config('clau.api_url') . '/ext/v2/iniciar_sesion_ext';
-        
-        Log::debug('ClauService: Preparing login request', [
-            'endpoint' => $endpoint,
-            'email' => $email,
-            'headers' => array_keys($headers),
-            'appid_value' => $this->APPID,
-            'api_url_config' => config('clau.api_url'),
-        ]);
 
         try {
             $response = Http::withoutVerifying()
@@ -114,20 +90,8 @@ class ClauService
                     'password' => $password
                 ]);
                 
-            Log::debug('ClauService: Login response received', [
-                'status' => $response->status(),
-                'successful' => $response->successful(),
-                'headers' => $response->headers(),
-            ]);
-            
             return $response;
         } catch (\Exception $e) {
-            Log::error('ClauService: Exception during login request', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'endpoint' => $endpoint
-            ]);
-            
             throw $e;
         }
     }
