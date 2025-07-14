@@ -17,7 +17,7 @@ class StandardizeDomain
     public function handle(Request $request, Closure $next)
     {
         // Choose your preferred domain (with or without www)
-        $preferredDomain = 'tostocoffee.com'; // or 'www.tostocoffee.com'
+        $preferredDomain = 'www.tostocoffee.com'; // or 'www.tostocoffee.com'
         
         // Get the current host
         $host = $request->getHost();
