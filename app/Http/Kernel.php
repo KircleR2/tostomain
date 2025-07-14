@@ -37,14 +37,10 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\LocalizationMiddleware::class,
-            \App\Http\Middleware\TransferClauTokenMiddleware::class,
         ],
 
         'api' => [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
-            \App\Http\Middleware\TransferClauTokenMiddleware::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
@@ -69,8 +65,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'clau.auth' => \App\Http\Middleware\ClauTokenMiddleware::class,
-        'clau.redirect' => \App\Http\Middleware\RedirectIdClauTokenMiddleware::class,
-        'clau.token' => \App\Http\Middleware\ClauTokenMiddleware::class,
-        'session' => \Illuminate\Session\Middleware\StartSession::class,
+        'clau.redirect' => \App\Http\Middleware\RedirectIdClauTokenMiddleware::class
     ];
 }

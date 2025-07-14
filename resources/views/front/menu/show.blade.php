@@ -336,7 +336,7 @@
                 <div class="flex flex-col">
                   <div class="flex justify-between items-center">
                     <div class="font-action text-3xl">{{ __('Pollo Club') }}</div>
-                    <div class="text-2xl font-bold">$11.95</div>
+                    <div class="text-2xl font-bold">$13.95</div>
                   </div>
                   <div class="text-xl text-gray-700">{{ __('Filete de pollo, tocino, queso blanco, hongos y cebolla caramelizada') }}</div>
                   <div class="text-md text-gray-700 italic">{{ __('Pan: Ciabatta, Campesino o Brioche') }}</div>
@@ -344,7 +344,7 @@
                 <div class="flex flex-col">
                   <div class="flex justify-between items-center">
                     <div class="font-action text-3xl">{{ __('SuperClub') }}</div>
-                    <div class="text-2xl font-bold">$13.95</div>
+                    <div class="text-2xl font-bold">$12.95</div>
                   </div>
                   <div class="text-xl text-gray-700">{{ __('Nuestra versión del club sandwich, relleno de pollo, jamón, tocino, queso cheddar, queso suizo y salsa de la casa') }}</div>
                   <div class="text-md text-gray-700 italic">{{ __('Pan: Molde Brioche') }}</div>

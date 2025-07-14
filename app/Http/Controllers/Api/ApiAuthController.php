@@ -3,12 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Middleware\ClauTokenMiddleware;
 use App\Services\ClauService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class ApiAuthController extends Controller
@@ -31,116 +29,23 @@ class ApiAuthController extends Controller
             'password' => $request->input('password'),
         ];
 
-        try {
-            Log::info('Login attempt', [
-                'email' => $login_data['email'],
-                'has_password' => !empty($login_data['password']),
-                'ip' => $request->ip(),
-                'user_agent' => $request->header('User-Agent')
-            ]);
-        } catch (\Exception $e) {
-            // Silent fail if logging fails
-        }
-
         $response = $this->clauService->login($login_data['email'], $login_data['password']);
-        
         if ($response->successful()) {
             $responseData = $response->json();
 
             if (isset($responseData['codigoRespuesta']) && $responseData['codigoRespuesta'] === 0) {
-                // Check if session exists
-                if (!$request->hasSession()) {
-                    try {
-                        Log::error('Session not available during login', [
-                            'email' => $login_data['email'],
-                            'ip' => $request->ip()
-                        ]);
-                    } catch (\Exception $e) {
-                        // Silent fail if logging fails
-                    }
-                    
-                    return response()->json([
-                        'code' => 500,
-                        'message' => 'Session not available',
-                    ])->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
-                }
-                
-                // Store token in session
                 $request->session()->put('clauToken', $responseData['token']);
-                
-                // Force session save
-                $request->session()->save();
-                
-                // Set cookie with appropriate settings for production
-                $domain = parse_url(config('app.url'), PHP_URL_HOST);
-                
-                // If domain starts with www, make cookie available to subdomains
-                if (strpos($domain, 'www.') === 0) {
-                    $domain = substr($domain, 4); // Remove www.
-                }
-                
-                // For localhost or IP testing
-                if ($domain === 'localhost' || filter_var($domain, FILTER_VALIDATE_IP)) {
-                    $domain = null;
-                }
-                
-                $cookie = cookie(
-                    ClauTokenMiddleware::COOKIE_NAME, // name
-                    $responseData['token'], // value
-                    120,                 // minutes (2 hours)
-                    '/',                 // path
-                    $domain,             // domain (null for localhost)
-                    null,                // secure (null = auto-detect)
-                    false,               // httpOnly (false to allow JS access)
-                    false,               // raw - set to false to avoid encoding issues
-                    'lax'                // sameSite
-                );
-                
-                try {
-                    Log::debug('Login successful, token stored in session', [
-                        'has_session' => $request->hasSession(),
-                        'session_id' => $request->session()->getId(),
-                        'token_stored' => $request->session()->has('clauToken'),
-                        'token_length' => strlen($responseData['token']),
-                        'session_driver' => config('session.driver'),
-                        'cookie_set' => true,
-                        'domain' => $domain,
-                        'cookie_name' => ClauTokenMiddleware::COOKIE_NAME
-                    ]);
-                } catch (\Exception $e) {
-                    // Silent fail if logging fails
-                }
-                
                 return response()->json([
                     'code' => 0,
                     'message' => 'Haz iniciado sesión correctamente',
-                ])->setStatusCode(Response::HTTP_OK)->withCookie($cookie);
-            }
+                ])->setStatusCode(Response::HTTP_OK);
 
-            try {
-                Log::warning('Login failed: API returned error', [
-                    'code' => $responseData['codigoRespuesta'],
-                    'message' => $responseData['msj'],
-                    'email' => $login_data['email']
-                ]);
-            } catch (\Exception $e) {
-                // Silent fail if logging fails
             }
 
             return response()->json([
                 'code' => $responseData['codigoRespuesta'],
                 'message' => $responseData['msj'],
             ])->setStatusCode(Response::HTTP_BAD_REQUEST);
-        }
-
-        try {
-            Log::error('Login failed: API request error', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-                'email' => $login_data['email']
-            ]);
-        } catch (\Exception $e) {
-            // Silent fail if logging fails
         }
 
         return response()->json([
@@ -188,33 +93,11 @@ class ApiAuthController extends Controller
 
                     if (isset($responseLoginData['codigoRespuesta']) && $responseLoginData['codigoRespuesta'] === 0) {
                         $request->session()->put('clauToken', $responseLoginData['token']);
-                        $request->session()->save();
-                        
-                        // Set cookie here as well
-                        $domain = parse_url(config('app.url'), PHP_URL_HOST);
-                        if (strpos($domain, 'www.') === 0) {
-                            $domain = substr($domain, 4);
-                        }
-                        if ($domain === 'localhost' || filter_var($domain, FILTER_VALIDATE_IP)) {
-                            $domain = null;
-                        }
-                        
-                        $cookie = cookie(
-                            ClauTokenMiddleware::COOKIE_NAME,
-                            $responseLoginData['token'],
-                            120,
-                            '/',
-                            $domain,
-                            null,
-                            false,
-                            false,  // raw - set to false to avoid encoding issues
-                            'lax'
-                        );
 
                         return response()->json([
                             'code' => 0,
                             'message' => 'Registro completado correctamente',
-                        ])->setStatusCode(Response::HTTP_OK)->withCookie($cookie);
+                        ])->setStatusCode(Response::HTTP_OK);
                     }
                 }
             }

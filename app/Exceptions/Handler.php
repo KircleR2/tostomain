@@ -3,10 +3,6 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Illuminate\Database\QueryException;
-use Illuminate\Auth\AuthenticationException;
-use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -47,35 +43,6 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
-        });
-        
-        // Handle database connection errors
-        $this->renderable(function (QueryException $e, $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Database connection error',
-                    'error' => config('app.debug') ? $e->getMessage() : 'Could not connect to the database',
-                ], 500);
-            }
-        });
-        
-        // Handle authentication errors
-        $this->renderable(function (AuthenticationException $e, $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Unauthenticated',
-                ], 401);
-            }
-        });
-        
-        // Handle validation errors
-        $this->renderable(function (ValidationException $e, $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'message' => 'The given data was invalid',
-                    'errors' => $e->errors(),
-                ], $e->status);
-            }
         });
     }
 }

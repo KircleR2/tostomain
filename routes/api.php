@@ -16,18 +16,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Public routes
 Route::post('/login', [ApiAuthController::class, 'login']);
 Route::post('/register', [ApiAuthController::class, 'register']);
+Route::post('/dashboard', [ApiDashboardController::class, 'index']);
+Route::post('/store-points', [ApiDashboardController::class, 'store_points']);
+Route::post('/gifts', [ApiDashboardController::class, 'gifts']);
+Route::post('/buy-product', [ApiDashboardController::class, 'buy_product']);
 Route::post('/recovery-password', [ApiAuthController::class, 'recovery_password']);
 Route::post('/webhook', [WebhookController::class, 'handleWebhook']);
-
-// Protected routes
-Route::middleware(['api', 'session'])->group(function () {
-    Route::post('/dashboard', [ApiDashboardController::class, 'index']);
-    Route::post('/store-points', [ApiDashboardController::class, 'store_points']);
-    Route::post('/gifts', [ApiDashboardController::class, 'gifts']);
-    Route::post('/buy-product', [ApiDashboardController::class, 'buy_product']);
-});
 
 
