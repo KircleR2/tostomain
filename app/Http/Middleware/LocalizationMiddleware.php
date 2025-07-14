@@ -18,9 +18,15 @@ class LocalizationMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
+        // Check for locale in cookie
         if ($request->cookie('locale')) {
             App::setLocale($request->cookie('locale'));
+        } 
+        // Fallback to session if cookie is not available
+        else if (Session::has('locale')) {
+            App::setLocale(Session::get('locale'));
         }
+        
         return $next($request);
     }
 }

@@ -3,23 +3,27 @@ import { ref } from 'vue'
 const props = defineProps({
   currentLang: {
     required: true,
-    type: String
+    type: String,
+    default: 'es'
   }
 })
 
 const showLangModal = ref(false)
+
+// Ensure we have a valid language, defaulting to Spanish if not set
+const lang = props.currentLang || 'es'
 </script>
 
 <template>
 <div class="flex justify-center items-center space-x-2 cursor-pointer select-none" @click="showLangModal = true">
-  <div><img class="w-[25px]" :src="`/images/flags/${props.currentLang}.png`" :alt="props.currentLang"></div>
-  <div class="uppercase">{{ props.currentLang }}</div>
+  <div><img class="w-[25px]" :src="`/images/flags/${lang}.png`" :alt="lang"></div>
+  <div class="uppercase">{{ lang }}</div>
   <div><svg class="w-[20px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" /></svg></div>
 </div>
 <div class="modal" v-if="showLangModal">
   <div class="modal-content flex flex-col items-center justify-center">
     <div class="flex flex-col justify-center items-center mb-10">
-      <h2 class="font-action text-2xl">Elegir idioma</h2>
+      <h2 class="font-action text-2xl">{{ lang === 'en' ? 'Choose language' : 'Elegir idioma' }}</h2>
     </div>
     <div class="flex flex-row justify-center items-center gap-7 h-full">
       <a href="/lang/es" class="flex flex-col justify-center items-center space-y-3 hover:opacity-50">
