@@ -17,7 +17,7 @@ class StandardizeDomain
     public function handle(Request $request, Closure $next)
     {
         // Choose your preferred domain (with or without www)
-        $preferredDomain = 'www.tostocoffee.com'; // or 'www.tostocoffee.com'
+        $preferredDomain = 'www.tostocoffee.com';
         
         // Get the current host
         $host = $request->getHost();
@@ -28,7 +28,10 @@ class StandardizeDomain
             $path = $request->path() === '/' ? '' : '/'.$request->path();
             $query = $request->getQueryString() ? '?'.$request->getQueryString() : '';
             
-            return redirect()->to($scheme.'://'.$preferredDomain.$path.$query, 301);
+            // Create a redirect response that preserves cookies
+            $response = redirect()->to($scheme.'://'.$preferredDomain.$path.$query, 301);
+            
+            return $response;
         }
         
         return $next($request);
