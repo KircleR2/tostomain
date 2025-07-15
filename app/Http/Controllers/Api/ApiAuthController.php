@@ -34,12 +34,16 @@ class ApiAuthController extends Controller
             $responseData = $response->json();
 
             if (isset($responseData['codigoRespuesta']) && $responseData['codigoRespuesta'] === 0) {
+                // Store the token in session
                 $request->session()->put('clauToken', $responseData['token']);
+                
+                // Force the session to be saved immediately
+                $request->session()->save();
+                
                 return response()->json([
                     'code' => 0,
                     'message' => 'Haz iniciado sesión correctamente',
                 ])->setStatusCode(Response::HTTP_OK);
-
             }
 
             return response()->json([

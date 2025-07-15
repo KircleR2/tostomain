@@ -40,10 +40,16 @@ function login () {
   setTimeout(() => {
     axios.post('/api/login', loginData)
     .then(response => {
-      fetchLogin.value = false
       if (response.data.code === 0) {
-        window.location.href = '/dashboard'
+        // Keep showing loading state
+        console.log('Login successful, waiting for session to establish...')
+        
+        // Add a longer delay before redirecting to ensure session is established
+        setTimeout(() => {
+          window.location.href = '/dashboard'
+        }, 2000) // 2 second delay
       } else {
+        fetchLogin.value = false
         showError(response.data?.message)
       }
     })
