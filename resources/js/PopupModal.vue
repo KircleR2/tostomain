@@ -19,10 +19,12 @@ export default defineComponent({
     OnClickOutside
   },
   data: () => ({
-    showModal: false
+    showModal: false,
+    cacheBust: ''
   }),
   mounted () {
     this.showModal = this.isShow
+    this.cacheBust = Date.now().toString()
   },
 })
 </script>
@@ -37,10 +39,10 @@ export default defineComponent({
         </a>
       </div>
       <template v-if="href !== ''">
-        <a :href="href" target="_blank" rel="noopener noreferrer"><img class="responsive-image" src="/images/popup.png" alt="Popup Image"></a>
+        <a :href="href" target="_blank" rel="noopener noreferrer"><img class="responsive-image" :src="`/images/popup.png?v=${cacheBust}`" alt="Popup Image"></a>
       </template>
       <template v-else>
-        <img class="responsive-image" src="/images/popup.png" alt="Popup Image">
+        <img class="responsive-image" :src="`/images/popup.png?v=${cacheBust}`" alt="Popup Image">
       </template>
     </div>
   </OnClickOutside>
