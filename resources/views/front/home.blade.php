@@ -3,7 +3,7 @@
 @section('description', __('home_description'))
 @section('content')
   <div id="popup-modal">
-    <popup-modal :is-show="true" href="{{ route('front.menu.show', ['menu' => \App\Values\MenuValues::COLD_DRINKS_AND_FRESH['value']]) }}" />
+    <popup-modal :is-show="true" href="https://tosto-coffee.cluvi.co" />
   </div>
   <section id="inicio" class="relative">
     <div class="absolute top-0 left-0 w-full flex justify-between opacity-5 -z-10">
