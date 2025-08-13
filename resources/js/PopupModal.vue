@@ -37,7 +37,7 @@ export default defineComponent({
         </a>
       </div>
       <template v-if="href !== ''">
-        <a :href="href"><img class="responsive-image" src="/images/popup.png" alt="Popup Image"></a>
+        <a :href="href" target="_blank" rel="noopener noreferrer"><img class="responsive-image" src="/images/popup.png" alt="Popup Image"></a>
       </template>
       <template v-else>
         <img class="responsive-image" src="/images/popup.png" alt="Popup Image">
