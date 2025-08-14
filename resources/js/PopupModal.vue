@@ -68,20 +68,14 @@ export default defineComponent({
   background-color: white;
   padding: 20px;
   border-radius: 5px;
-  max-width: 45vw;
+  max-width: 90%;
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
   margin: 0 auto;
 }
 
 .responsive-image {
-  width: 100%;
   max-width: 100%;
   height: auto;
 }
 
-@media (max-width: 768px) {
-  .modal-content {
-    max-width: 90vw;
-  }
-}
 </style>
