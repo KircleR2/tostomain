@@ -54,8 +54,8 @@ export default defineComponent({
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 50%;
+  height: 50%;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -68,7 +68,7 @@ export default defineComponent({
   background-color: white;
   padding: 20px;
   border-radius: 5px;
-  max-width: 30%;
+  max-width: 90%;
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
   margin: 0 auto;
 }
