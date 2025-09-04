@@ -21,11 +21,9 @@ Route::get('/', [FrontController::class, 'index'])->name('front.index');
 Route::get('lang/{locale}', [FrontController::class, 'lang'])->name('front.locale');
 Route::get('nueva-sucursal-altaplaza', [FrontController::class, 'new_branch'])->name('front.new-branch');
 
-Route::group(['middleware' => ['clau.redirect']], static function () {
-    Route::get('/login', [AuthController::class, 'login'])->name('auth.login');
-    Route::get('/registro-club-elite', [AuthController::class, 'register'])->name('auth.register');
-    Route::get('/recuperar', [AuthController::class, 'recovery_password'])->name('auth.recovery-password');
-});
+Route::get('/login', [AuthController::class, 'login'])->name('auth.login');
+Route::get('/registro-club-elite', [AuthController::class, 'register'])->name('auth.register');
+Route::get('/recuperar', [AuthController::class, 'recovery_password'])->name('auth.recovery-password');
 
 Route::get('/logout', [AuthController::class, 'logout'])->name('auth.logout');
 Route::get('/dashboard', DashboardController::class)
