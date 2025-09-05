@@ -61,7 +61,7 @@ function recoveryPassword () {
 <template>
   <div>
     <div class="md:absolute flex flex-row justify-center md:justify-end items-end w-full pt-12 md:pr-20 z-10">
-      <a href="https://tostocoffee.com"><img class="w-[150px]" src="/images/logo-white.svg" alt="Logo White"></a>
+      <a href="https://tostocoffee.com"><img class="w-[150px]" src="images/logo-white.svg" alt="Logo White"></a>
     </div>
     <div class="flex flex-col md:flex-row items-center justify-between">
       <div class="flex flex-col w-full md:w-4/12 justify-center px-10 md:pl-20 mb-10">
@@ -69,7 +69,7 @@ function recoveryPassword () {
           <div><h4 class="text-white text-5xl font-action">Felicidades</h4></div>
           <div class="text-white">Hemos enviado un link de recuperación a {{ recoveryPasswordData.email }}.</div>
           <div class="mt-5">
-            <a class="text-[#513628]" href="https://tostocoffee.com/login">¡Iniciar Sesión Ahora!</a>
+            <a class="text-[#513628]" href="/login">¡Iniciar Sesión Ahora!</a>
           </div>
         </div>
         <div v-show="!fetchRecoveryPassword && !isSuccess"><h4 class="text-white text-5xl font-action mt-6">Recuperar Contraseña</h4></div>
@@ -123,13 +123,13 @@ function recoveryPassword () {
             </button>
           </div>
           <div class="text-center text-white">
-            Ya tienes una cuenta?, <a class="text-[#513628]" href="https://tostocoffee.com/login">Iniciar Sesión</a>
+            Ya tienes una cuenta?, <a class="text-[#513628]" href="/login">Iniciar Sesión</a>
           </div>
         </form>
       </div>
       <div class="w-7/12 relative h-screen hidden md:flex flex-row justify-center items-center space-x-2">
-        <div><img class="rounded-2xl rotate-3" src="/images/login-1.png" alt=""></div>
-        <div><img class="rounded-2xl -rotate-3" src="/images/login-2.png" alt=""></div>
+        <div><img class="rounded-2xl rotate-3" src="images/login-1.png" alt=""></div>
+        <div><img class="rounded-2xl -rotate-3" src="images/login-2.png" alt=""></div>
       </div>
     </div>
   </div>
