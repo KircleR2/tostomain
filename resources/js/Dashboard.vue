@@ -12,6 +12,8 @@ const isSuccess = ref(false)
 const errorMessage = ref(null)
 const errorClose = ref(null)
 const errorText = ref(null)
+const retryAttempts = ref(0)
+const maxRetryAttempts = 3
 
 const userInitialData = {
   fullname: '',
@@ -26,6 +28,20 @@ const products = ref([])
 const gifts = ref([])
 
 onMounted(() => {
+  // Check for token in query params
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  
+  if (token) {
+    console.log('Found token in URL parameters, setting to session storage');
+    // Store token in session storage as a fallback
+    sessionStorage.setItem('clau_token', token);
+    
+    // Remove token from URL without refreshing
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, newUrl);
+  }
+  
   fetchDashboard.value = false
   getUserData()
 })
@@ -34,26 +50,54 @@ function getFirstName (){
   return userData.fullname.split(' ')[0]
 }
 function showError (message) {
-  console.log(errorText.value)
-  errorText.value.innerHTML = message
-  errorMessage.value.classList.remove('hidden')
-  setTimeout(hideError, 5000)
+  console.log('Error:', message)
+  if (errorText.value) {
+    errorText.value.innerHTML = message
+    errorMessage.value.classList.remove('hidden')
+    setTimeout(hideError, 5000)
+  } else {
+    // Fallback to Toastify if error elements not found
+    Toastify({
+      text: message,
+      duration: 5000,
+      close: true,
+      gravity: "top",
+      position: "center",
+      style: {
+        background: "linear-gradient(to right, #ff5f6d, #ffc371)",
+      },
+    }).showToast();
+  }
 }
 
 function hideError () {
-  errorMessage.value.classList.add('hidden')
+  if (errorMessage.value) {
+    errorMessage.value.classList.add('hidden')
+  }
 }
 
 async function getUserDataRequest () {
   return new Promise((resolve, reject) => {
-    axios.post('/api/dashboard')
+    // Send token from sessionStorage as fallback if available
+    const token = sessionStorage.getItem('clau_token');
+    const requestData = token ? { token } : {};
+    
+    axios.post('/api/dashboard', requestData)
     .then(response => {
       resolve(response)
     })
     .catch(error => {
+      console.error('Dashboard API error:', error.response?.data || error);
       reject(error)
     })
   })
+}
+
+function redirectToLogin() {
+  console.log('Redirecting to login page...');
+  setTimeout(() => {
+    window.location.href = '/login';
+  }, 2000);
 }
 
 function getUserData () {
@@ -67,67 +111,111 @@ function getUserData () {
         getGifts()
         getStorePoints()
         isSuccess.value = true
+        retryAttempts.value = 0 // Reset retry counter on success
       } else {
         isSuccess.value = false
+        // Check if we need to redirect
+        if (response.data.redirect) {
+          showError(response.data.message || 'Session expired, redirecting to login...');
+          redirectToLogin();
+        } else {
+          showError(response.data.message || 'Error loading user data');
+        }
       }
     })
-    .catch(() => {
-      window.location.href = '/login'
+    .catch((error) => {
+      fetchDashboard.value = false
+      retryAttempts.value++
+      
+      console.error('Failed to load dashboard:', error);
+      
+      if (retryAttempts.value < maxRetryAttempts) {
+        showError(`Error cargando datos (intento ${retryAttempts.value}/${maxRetryAttempts}). Reintentando...`);
+        setTimeout(getUserData, 2000); // Retry after 2 seconds
+      } else {
+        showError('No se pudieron cargar los datos después de varios intentos. Redirigiendo a login...');
+        redirectToLogin();
+      }
     })
-  }, 1500)
+  }, 500) // Reduced delay for faster response
 }
 
 function getStorePoints () {
   fetchStorePoints.value = true
   setTimeout(() => {
-    axios.post('/api/store-points')
+    // Send token from sessionStorage as fallback if available
+    const token = sessionStorage.getItem('clau_token');
+    const requestData = token ? { token } : {};
+    
+    axios.post('/api/store-points', requestData)
     .then(response => {
       fetchStorePoints.value = false
       if (response.data.code === 0) {
         products.value = response.data.products
       } else {
         products.value = []
+        if (response.data.redirect) {
+          showError(response.data.message || 'Session expired, redirecting to login...');
+          redirectToLogin();
+        }
       }
     })
-    .catch(() => {
-      window.location.href = '/login'
+    .catch((error) => {
+      fetchStorePoints.value = false
+      console.error('Failed to load store points:', error);
+      products.value = []
     })
-  }, 1500)
+  }, 500) // Reduced delay for faster response
 }
 
 function getGifts () {
   fetchGifts.value = true
   setTimeout(() => {
-    axios.post('/api/gifts')
+    // Send token from sessionStorage as fallback if available
+    const token = sessionStorage.getItem('clau_token');
+    const requestData = token ? { token } : {};
+    
+    axios.post('/api/gifts', requestData)
     .then(response => {
       fetchGifts.value = false
       if (response.data.code === 0) {
         gifts.value = response.data.gifts
       } else {
         gifts.value = []
+        if (response.data.redirect) {
+          showError(response.data.message || 'Session expired, redirecting to login...');
+          redirectToLogin();
+        }
       }
     })
     .catch(() => {
-      window.location.href = '/login'
+      fetchGifts.value = false
+      gifts.value = []
     })
-  }, 1500)
+  }, 500) // Reduced delay for faster response
 }
 
 function buyProduct(productId) {
   if (confirm('¿Está seguro que desea canjear el producto?')) {
     fetchStorePoints.value = true
-    axios.post('/api/buy-product', {
-      regaloId: productId
-    })
+    
+    // Send token from sessionStorage as fallback if available
+    const token = sessionStorage.getItem('clau_token');
+    const requestData = { 
+      regaloId: productId,
+      ...(token ? { token } : {})
+    };
+    
+    axios.post('/api/buy-product', requestData)
     .then(response => {
       if (response.data.code === 0) {
         Toastify({
           text: response.data.message,
           duration: 3000,
           close: true,
-          gravity: "top", // `top` or `bottom`
-          position: "center", // `left`, `center` or `right`
-          stopOnFocus: true, // Prevents dismissing of toast on hover
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
           style: {
             background: "linear-gradient(to right, #00b09b, #96c93d)",
           },
@@ -142,10 +230,15 @@ function buyProduct(productId) {
             getStorePoints()
           }
         })
+      } else if (response.data.redirect) {
+        showError(response.data.message || 'Session expired, redirecting to login...');
+        redirectToLogin();
       }
     })
-    .catch(() => {
-      window.location.href = '/login'
+    .catch((error) => {
+      console.error('Error buying product:', error);
+      fetchStorePoints.value = false;
+      showError('Error al canjear el producto. Por favor intente de nuevo.');
     })
   }
 }
@@ -172,7 +265,6 @@ async function shareRef () {
     }
   }
   else {
-
     console.warn('Native Web Sharing not supported')
     window.open(`https://wa.me/?text=${encodeURI(urlToShare)}`, '_blank')
   }
@@ -183,12 +275,12 @@ async function shareRef () {
 <template>
   <div v-show="fetchDashboard === true" class="flex flex-col items-center justify-center relative w-full h-screen space-y-11 overflow-hidden">
     <div class="absolute top-0 left-0 w-full flex justify-between opacity-5 -z-10">
-      <div><img class="w-full h-screen" src="images/bg-coffee-elements.svg" alt=""></div>
-      <div><img class="w-[500px] mt-16" src="images/right-coffee.svg" alt=""></div>
+      <div><img class="w-full h-screen" src="/images/bg-coffee-elements.svg" alt=""></div>
+      <div><img class="w-[500px] mt-16" src="/images/right-coffee.svg" alt=""></div>
     </div>
     <div class="absolute bg-[#FFF0E5] top-0 left-0 w-full h-full -z-20"></div>
     <div>
-      <img class="w-[180px]" src="images/logo.svg" alt="Logo">
+      <img class="w-[180px]" src="/images/logo.svg" alt="Logo">
     </div>
     <div>Cargando, por favor espere...</div>
   </div>
@@ -197,26 +289,26 @@ async function shareRef () {
       <div class="container mx-auto flex items-center justify-between py-7 px-6 sm:px-0 md:px-0">
         <div class="flex items-center">
           <a href="/dashboard">
-            <img src="images/logo.svg" alt="Logo" class="h-[55px] sm:h-[60px] md:h-16">
+            <img src="/images/logo.svg" alt="Logo" class="h-[55px] sm:h-[60px] md:h-16">
           </a>
         </div>
         <div class="flex md:hidden items-center justify-center space-x-6">
           <div>
-            <a href="logout">
+            <a href="/logout">
               <svg class="w-[30px]" viewBox="0 0 24 24"><path d="M14.08,15.59L16.67,13H7V11H16.67L14.08,8.41L15.5,7L20.5,12L15.5,17L14.08,15.59M19,3A2,2 0 0,1 21,5V9.67L19,7.67V5H5V19H19V16.33L21,14.33V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5C3,3.89 3.89,3 5,3H19Z" /></svg>
             </a>
           </div>
         </div>
         <div id="full-menu" class="hidden md:flex items-center text-2xl md:space-x-14">
           <div class="flex md:hidden justify-between absolute top-20 left-0 w-full opacity-5 -z-10">
-            <div><img class="w-[200px] mt-16" src="images/left-coffee.svg" alt=""></div>
-            <div><img class="w-[500px] mt-16" src="images/right-coffee.svg" alt=""></div>
+            <div><img class="w-[200px] mt-16" src="/images/left-coffee.svg" alt=""></div>
+            <div><img class="w-[500px] mt-16" src="/images/right-coffee.svg" alt=""></div>
           </div>
           <ul class="main-menu flex flex-col md:flex-row items-center space-y-11 md:space-y-0 md:space-x-10">
             <li>
               <div class="flex flex-row justify-center items-center space-x-5">
                 <div>
-                  <img class="w-[50px] bg-gray-50 border border-gray-300 rounded-full" src="images/club-elite-logo.png" alt="">
+                  <img class="w-[50px] bg-gray-50 border border-gray-300 rounded-full" src="/images/club-elite-logo.png" alt="">
                 </div>
                 <div class="text-[20px]">{{ userData.fullname }}</div>
               </div>
@@ -327,7 +419,7 @@ async function shareRef () {
             </div>
           </div>
           <div class="mt-3 md:mt-0">
-            <img class="w-[200px] mr-5" src="images/club-elite-logo.png" alt="">
+            <img class="w-[200px] mr-5" src="/images/club-elite-logo.png" alt="">
           </div>
         </div>
       </div>
