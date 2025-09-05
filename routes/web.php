@@ -6,6 +6,10 @@ use App\Http\Controllers\FrontController;
 use App\Values\MenuValues;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/login-test', function () {
+    return 'LOGIN TEST';
+});
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
