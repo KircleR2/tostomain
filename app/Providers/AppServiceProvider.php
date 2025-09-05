@@ -21,9 +21,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Force HTTPS for URLs in production
+        // Always force HTTPS for URLs
+        URL::forceScheme('https');
+        
+        // Set trusted proxies for proper HTTPS detection
         if (config('app.env') !== 'local') {
-            URL::forceScheme('https');
+            $request = app('request');
+            $request->setTrustedProxies(
+                // Trust all proxies in production
+                ['0.0.0.0/0'],
+                \Illuminate\Http\Request::HEADER_X_FORWARDED_ALL
+            );
         }
         
         Schema::defaultStringLength(191);

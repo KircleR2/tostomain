@@ -4,8 +4,10 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="description" content="@yield('description')">
 @if(config('app.env') !== 'local')
-<base href="{{ config('app.url') }}">
+<base href="{{ config('app.url') }}/">
 @endif
+<!-- Force secure URLs for all assets -->
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 <link rel="apple-touch-icon" sizes="57x57" href="{{ asset('images/favicon/apple-icon-57x57.png') }}">
 <link rel="apple-touch-icon" sizes="60x60" href="{{ asset('images/favicon/apple-icon-60x60.png') }}">
 <link rel="apple-touch-icon" sizes="72x72" href="{{ asset('images/favicon/apple-icon-72x72.png') }}">

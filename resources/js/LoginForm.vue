@@ -42,20 +42,37 @@ function login () {
     .then(response => {
       if (response.data.code === 0) {
         // Keep showing loading state
-        console.log('Login successful, waiting for session to establish...')
+        console.log('Login successful, waiting for session to establish...', response.data)
         
-        // Add a longer delay before redirecting to ensure session is established
+        // Make sure cookies are set by the browser
+        document.cookie = "session_present=true; path=/; secure; samesite=none";
+        
+        // Try to make a direct request to verify token
+        axios.get('/api/verify-token')
+          .then(verifyResponse => {
+            console.log('Token verification successful:', verifyResponse.data)
+          })
+          .catch(err => {
+            console.error('Token verification failed:', err)
+          });
+        
+        // Use direct navigation with query parameter fallback
+        const destination = '/dashboard?token=' + encodeURIComponent(response.data.token || 'fallback');
+        
+        // Longer delay for better session establishment
         setTimeout(() => {
-          window.location.href = '/dashboard'
-        }, 2000) // 2 second delay
+          console.log('Redirecting to dashboard');
+          window.location.href = destination;
+        }, 3000) // 3 second delay for better session sync
       } else {
         fetchLogin.value = false
         showError(response.data?.message)
       }
     })
     .catch(err => {
+      console.error('Login error:', err);
       fetchLogin.value = false
-      showError(err?.response?.data?.message)
+      showError(err?.response?.data?.message || 'Error de conexión')
     })
   }, 1500)
 }

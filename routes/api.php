@@ -25,4 +25,18 @@ Route::post('/buy-product', [ApiDashboardController::class, 'buy_product']);
 Route::post('/recovery-password', [ApiAuthController::class, 'recovery_password']);
 Route::post('/webhook', [WebhookController::class, 'handleWebhook']);
 
+// Token verification endpoint
+Route::get('/verify-token', function() {
+    $token = session('clauToken');
+    $cookies = request()->cookies->all();
+    $cookieNames = array_keys($cookies);
+    
+    return response()->json([
+        'success' => !empty($token),
+        'token_prefix' => $token ? substr($token, 0, 10) . '...' : 'missing',
+        'session_id' => session()->getId(),
+        'cookies_present' => $cookieNames
+    ]);
+});
+
 

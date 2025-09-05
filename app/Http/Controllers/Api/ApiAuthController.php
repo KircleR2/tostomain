@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class ApiAuthController extends Controller
@@ -30,6 +31,13 @@ class ApiAuthController extends Controller
             'password' => $request->input('password'),
         ];
 
+        // Debug info before API call
+        Log::debug('Login attempt', [
+            'email' => $login_data['email'],
+            'has_session' => $request->hasSession(),
+            'session_id' => session()->getId(),
+        ]);
+
         $response = $this->clauService->login($login_data['email'], $login_data['password']);
         if ($response->successful()) {
             $responseData = $response->json();
@@ -38,28 +46,44 @@ class ApiAuthController extends Controller
                 // Store the token in session
                 $token = $responseData['token'];
                 
-                // Add both to the session and cookies for redundancy
-                session(['clauToken' => $token]);
+                // Try multiple session storage methods
                 $request->session()->put('clauToken', $token);
+                session(['clauToken' => $token]);
                 
                 // Force the session to be saved immediately
                 $request->session()->save();
                 
-                // Also set as cookies with different configurations for cross-browser support
-                cookie()->queue('clau_token', $token, 60 * 24, '/', null, true, false);
-                cookie()->queue('clau_token_secure', $token, 60 * 24, '/', null, true, false, false, 'none');
+                // Store as cookies with different settings for maximum browser compatibility
+                $cookieOptions = [
+                    'expires' => time() + 60 * 60 * 24, // 1 day
+                    'path' => '/',
+                    'domain' => null, // Same domain
+                    'secure' => true,
+                    'httponly' => false,
+                    'samesite' => 'None'
+                ];
                 
-                // Debug information
-                \Log::info('Login successful', [
-                    'token' => substr($token, 0, 10) . '...',
+                setcookie('clau_token', $token, $cookieOptions);
+                Cookie::queue('clau_token', $token, 60 * 24, '/', null, true, false);
+                Cookie::queue('clau_token_secure', $token, 60 * 24, '/', null, true, false, false, 'none');
+                
+                // Debug info for session
+                Log::debug('Login successful', [
+                    'token_length' => strlen($token),
+                    'token_prefix' => substr($token, 0, 10) . '...',
                     'session_id' => session()->getId(),
                     'has_session' => $request->hasSession(),
-                    'session_token' => substr(session('clauToken', 'not-set'), 0, 10) . '...'
+                    'session_token' => session('clauToken') ? substr(session('clauToken'), 0, 10) . '...' : 'not-set',
+                    'cookie_set' => true
                 ]);
+                
+                // Store token in a temporary file for debug (will be removed later)
+                file_put_contents(storage_path('logs/debug_token.txt'), $token);
                 
                 return response()->json([
                     'code' => 0,
                     'message' => 'Haz iniciado sesión correctamente',
+                    'token' => $token,
                     'debug' => [
                         'session_id' => session()->getId(),
                         'has_token' => !empty(session('clauToken'))
@@ -72,6 +96,11 @@ class ApiAuthController extends Controller
                 'message' => $responseData['msj'],
             ])->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
+
+        Log::error('API login error', [
+            'status' => $response->status(),
+            'body' => $response->body()
+        ]);
 
         return response()->json([
             'message' => 'Error en la solicitud a la API',
@@ -119,16 +148,26 @@ class ApiAuthController extends Controller
                     if (isset($responseLoginData['codigoRespuesta']) && $responseLoginData['codigoRespuesta'] === 0) {
                         $token = $responseLoginData['token'];
                         
-                        // Add both to the session and cookies for redundancy
-                        session(['clauToken' => $token]);
+                        // Try multiple session storage methods
                         $request->session()->put('clauToken', $token);
+                        session(['clauToken' => $token]);
                         
                         // Force the session to be saved immediately
                         $request->session()->save();
                         
-                        // Also set as cookies with different configurations for cross-browser support
-                        cookie()->queue('clau_token', $token, 60 * 24, '/', null, true, false);
-                        cookie()->queue('clau_token_secure', $token, 60 * 24, '/', null, true, false, false, 'none');
+                        // Store as cookies with different settings for maximum browser compatibility
+                        $cookieOptions = [
+                            'expires' => time() + 60 * 60 * 24, // 1 day
+                            'path' => '/',
+                            'domain' => null,
+                            'secure' => true,
+                            'httponly' => false,
+                            'samesite' => 'None'
+                        ];
+                        
+                        setcookie('clau_token', $token, $cookieOptions);
+                        Cookie::queue('clau_token', $token, 60 * 24, '/', null, true, false);
+                        Cookie::queue('clau_token_secure', $token, 60 * 24, '/', null, true, false, false, 'none');
 
                         return response()->json([
                             'code' => 0,
