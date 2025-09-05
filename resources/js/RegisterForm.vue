@@ -95,25 +95,25 @@ function validatePhoneNumber()
 }
 
 function refreshRegister () {
-  window.location.href = window.location.origin + window.location.pathname
+  window.location.href = "https://tostocoffee.com" + window.location.pathname
 }
 </script>
 
 <template>
   <div v-show="fetchRegister === true" class="flex flex-col items-center justify-center relative w-full h-screen space-y-11 overflow-hidden">
     <div class="absolute top-0 left-0 w-full flex justify-between opacity-5 -z-10">
-      <div><img class="w-full h-screen" src="images/bg-coffee-elements.svg" alt=""></div>
-      <div><img class="w-[500px] mt-16" src="images/right-coffee.svg" alt=""></div>
+      <div><img class="w-full h-screen" src="/images/bg-coffee-elements.svg" alt=""></div>
+      <div><img class="w-[500px] mt-16" src="/images/right-coffee.svg" alt=""></div>
     </div>
     <div class="absolute bg-[#FFF0E5] top-0 left-0 w-full h-full -z-20"></div>
     <div>
-      <img class="w-[180px]" src="images/logo.svg" alt="Logo">
+      <img class="w-[180px]" src="/images/logo.svg" alt="Logo">
     </div>
     <div>Cargando, por favor espere...</div>
   </div>
   <div v-show="!fetchRegister && !isSuccess">
     <div class="md:absolute flex flex-row justify-center md:justify-end items-end w-full pt-12 md:pr-20 z-10">
-      <a href="/"><img class="w-[150px]" src="images/logo.svg" alt="Logo"></a>
+      <a href="https://tostocoffee.com"><img class="w-[150px]" src="/images/logo.svg" alt="Logo"></a>
     </div>
     <div class="flex flex-col md:flex-row items-center justify-between">
       <div class="flex flex-col w-full md:w-4/12 justify-center px-10 mt-10 md:pl-20 mb-10">
@@ -251,13 +251,13 @@ function refreshRegister () {
             </button>
           </div>
           <div class="text-center">
-            <a href="/login">Ya tengo una cuenta</a>
+            <a href="https://tostocoffee.com/login">Ya tengo una cuenta</a>
           </div>
         </form>
       </div>
       <div class="w-7/12 relative h-screen hidden md:flex flex-row justify-center items-center space-x-2">
-        <div><img class="rounded-2xl rotate-3" src="images/register-1.png" alt=""></div>
-        <div><img class="rounded-2xl -rotate-3" src="images/register-2.png" alt=""></div>
+        <div><img class="rounded-2xl rotate-3" src="/images/register-1.png" alt=""></div>
+        <div><img class="rounded-2xl -rotate-3" src="/images/register-2.png" alt=""></div>
       </div>
     </div>
   </div>
@@ -265,11 +265,11 @@ function refreshRegister () {
     <div class="flex flex-col items-center justify-center h-full">
       <div class="flex flex-row justify-center items-center space-x-10 px-8 md:px-0 mb-5">
         <div>
-          <img class="w-[180px]" src="images/logo.svg" alt="Logo">
+          <img class="w-[180px]" src="/images/logo.svg" alt="Logo">
         </div>
         <div class="w-[2px] bg-black h-[60px] md:h-[100px] opacity-5"></div>
         <div>
-          <img class="w-[180px]" src="images/club-elite-logo.png" alt="Club Elite Logo">
+          <img class="w-[180px]" src="/images/club-elite-logo.png" alt="Club Elite Logo">
         </div>
       </div>
       <div class="flex flex-col justify-center items-center">
@@ -283,7 +283,7 @@ function refreshRegister () {
           <h5 class="text-[#513628] uppercase text-5xl font-action">{{ registerData.fullname }}</h5>
         </div>
         <p class="text-[#666666] px-12 md:px-0 md:w-5/12 text-center mt-10">Te haz registrado correctamente, haz clic en Iniciar Sesión y empieces a acumular puntos.</p>
-        <a href="/login" class="text-[#666666] px-12 md:px-0 md:w-5/12 text-center mt-20">Iniciar Sesión</a>
+        <a href="https://tostocoffee.com/login" class="text-[#666666] px-12 md:px-0 md:w-5/12 text-center mt-20">Iniciar Sesión</a>
       </div>
     </div>
   </div>

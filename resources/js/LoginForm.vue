@@ -82,7 +82,7 @@ function login () {
 <template>
   <div>
     <div class="md:absolute flex flex-row justify-center md:justify-end items-end w-full pt-12 md:pr-20 z-10">
-      <a href="/"><img class="w-[150px]" src="/images/logo-white.svg" alt="Logo White"></a>
+      <a href="https://tostocoffee.com"><img class="w-[150px]" src="/images/logo-white.svg" alt="Logo White"></a>
     </div>
     <div class="flex flex-col md:flex-row items-center justify-between">
       <div class="flex flex-col w-full md:w-4/12 justify-center px-10 md:pl-20 mb-10">
@@ -125,7 +125,7 @@ function login () {
             />
           </div>
           <div class="text-right text-white">
-            <a class="text-[#513628]" href="/recuperar">Recuperar Contraseña</a>
+            <a class="text-[#513628]" href="https://tostocoffee.com/recuperar">Recuperar Contraseña</a>
           </div>
           <div>
             <button type="submit" class="mt-10 w-full">
@@ -152,13 +152,13 @@ function login () {
             </button>
           </div>
           <div class="text-center text-white">
-            Aún no tienes una cuenta?, <a class="text-[#513628]" href="/registro-club-elite">Regístrate Aquí!</a>
+            Aún no tienes una cuenta?, <a class="text-[#513628]" href="https://tostocoffee.com/registro-club-elite">Regístrate Aquí!</a>
           </div>
         </form>
       </div>
       <div class="w-7/12 relative h-screen hidden md:flex flex-row justify-center items-center space-x-2">
-        <div><img class="rounded-2xl rotate-3" src="images/login-1.png" alt=""></div>
-        <div><img class="rounded-2xl -rotate-3" src="images/login-2.png" alt=""></div>
+        <div><img class="rounded-2xl rotate-3" src="/images/login-1.png" alt=""></div>
+        <div><img class="rounded-2xl -rotate-3" src="/images/login-2.png" alt=""></div>
       </div>
     </div>
   </div>
