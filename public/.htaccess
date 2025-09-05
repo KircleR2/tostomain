@@ -1,25 +1,27 @@
 <IfModule mod_rewrite.c>
-  <IfModule mod_negotiation.c>
-    Options -MultiViews -Indexes
-  </IfModule>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
 
-  RewriteEngine On
+    RewriteEngine On
 
-  # Serve legacy asset paths
-  RewriteRule ^app\.css$ css/app.css [L]
-  RewriteRule ^app\.js$  js/app.js  [L]
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-  # Authorization header passthrough (optional but common)
-  RewriteCond %{HTTP:Authorization} .
-  RewriteRule .* - [E=HTTP_AUTHORIZATION:%1]
+    # Rewrite app.css to css/app.css
+    RewriteRule ^app\.css$ /css/app.css [L]
+    
+    # Rewrite app.js to js/app.js
+    RewriteRule ^app\.js$ /js/app.js [L]
 
-  # Redirect trailing slashes if not a folder
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_URI} (.+)/$
-  RewriteRule ^ %1 [L,R=301]
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
 
-  # Send everything else to front controller ONLY if not a real file/dir
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteRule ^ index.php [L]
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
 </IfModule>
