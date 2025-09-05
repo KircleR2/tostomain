@@ -54,19 +54,27 @@ const closeIcon = document.getElementById('close-icon')
 const fullMenu = document.getElementById('full-menu')
 const menuContainerList = fullMenu?.querySelector('ul')
 
-// Only run animations if we're on pages with the required elements
-if (document.querySelector('.coffee-seeds-image') || document.querySelector('.coffee-cup')) {
-  InitHomeAnimations()
-}
+// Wait for DOM to be fully loaded before running animations
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("DOM fully loaded - initializing animations");
+  
+  // Only run animations if we're on pages with the required elements
+  if (document.querySelector('.coffee-seeds-image') || document.querySelector('.coffee-cup')) {
+    console.log("Initializing home animations");
+    InitHomeAnimations();
+  }
 
-if (document.querySelector('.nav')) {
-  InitMenuAnimation()
-  InitMenuScroll()
-}
+  if (document.querySelector('.nav')) {
+    console.log("Initializing menu animations");
+    InitMenuAnimation();
+    InitMenuScroll();
+  }
 
-if (document.getElementById('menu-icon') || document.getElementById('close-icon')) {
-  initMenuActions()
-}
+  if (document.getElementById('menu-icon') || document.getElementById('close-icon')) {
+    console.log("Initializing menu actions");
+    initMenuActions();
+  }
+});
 
 function InitHomeAnimations () {
   const coffeeSeedsImage = document.querySelector('.coffee-seeds-image');

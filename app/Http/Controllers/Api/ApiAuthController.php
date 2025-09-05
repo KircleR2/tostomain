@@ -37,17 +37,33 @@ class ApiAuthController extends Controller
             if (isset($responseData['codigoRespuesta']) && $responseData['codigoRespuesta'] === 0) {
                 // Store the token in session
                 $token = $responseData['token'];
+                
+                // Add both to the session and cookies for redundancy
+                session(['clauToken' => $token]);
                 $request->session()->put('clauToken', $token);
                 
                 // Force the session to be saved immediately
                 $request->session()->save();
                 
-                // Also set as a cookie with SameSite=None for cross-domain use
-                Cookie::queue('clauToken', $token, 60, null, null, true, false, false, 'none');
+                // Also set as cookies with different configurations for cross-browser support
+                cookie()->queue('clau_token', $token, 60 * 24, '/', null, true, false);
+                cookie()->queue('clau_token_secure', $token, 60 * 24, '/', null, true, false, false, 'none');
+                
+                // Debug information
+                \Log::info('Login successful', [
+                    'token' => substr($token, 0, 10) . '...',
+                    'session_id' => session()->getId(),
+                    'has_session' => $request->hasSession(),
+                    'session_token' => substr(session('clauToken', 'not-set'), 0, 10) . '...'
+                ]);
                 
                 return response()->json([
                     'code' => 0,
                     'message' => 'Haz iniciado sesión correctamente',
+                    'debug' => [
+                        'session_id' => session()->getId(),
+                        'has_token' => !empty(session('clauToken'))
+                    ]
                 ])->setStatusCode(Response::HTTP_OK);
             }
 
@@ -102,13 +118,17 @@ class ApiAuthController extends Controller
 
                     if (isset($responseLoginData['codigoRespuesta']) && $responseLoginData['codigoRespuesta'] === 0) {
                         $token = $responseLoginData['token'];
+                        
+                        // Add both to the session and cookies for redundancy
+                        session(['clauToken' => $token]);
                         $request->session()->put('clauToken', $token);
                         
                         // Force the session to be saved immediately
                         $request->session()->save();
                         
-                        // Also set as a cookie with SameSite=None for cross-domain use
-                        Cookie::queue('clauToken', $token, 60, null, null, true, false, false, 'none');
+                        // Also set as cookies with different configurations for cross-browser support
+                        cookie()->queue('clau_token', $token, 60 * 24, '/', null, true, false);
+                        cookie()->queue('clau_token_secure', $token, 60 * 24, '/', null, true, false, false, 'none');
 
                         return response()->json([
                             'code' => 0,
