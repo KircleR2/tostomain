@@ -65,7 +65,7 @@ function login () {
 <template>
   <div>
     <div class="md:absolute flex flex-row justify-center md:justify-end items-end w-full pt-12 md:pr-20 z-10">
-      <a href="/"><img class="w-[150px]" src="images/logo-white.svg" alt="Logo White"></a>
+      <a href="/"><img class="w-[150px]" src="/images/logo-white.svg" alt="Logo White"></a>
     </div>
     <div class="flex flex-col md:flex-row items-center justify-between">
       <div class="flex flex-col w-full md:w-4/12 justify-center px-10 md:pl-20 mb-10">

@@ -32,12 +32,15 @@ class ClauService
             'apikeyProvider' => $this->API_KEY_PROVIDER,
         ];
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/iniciar_sesion_ext', [
-                'email' => $email,
-                'password' => $password
-            ]);
+        // Use withVerify(true) in production or withVerify(false) only in development
+        $http = config('app.env') === 'production' 
+            ? Http::withOptions(['verify' => true])->withHeaders($headers)
+            : Http::withoutVerifying()->withHeaders($headers);
+
+        return $http->post(config('clau.api_url') . '/ext/v2/iniciar_sesion_ext', [
+            'email' => $email,
+            'password' => $password
+        ]);
     }
 
     public function register($register_data) {
@@ -61,9 +64,12 @@ class ClauService
             $data['usuarioCodigoReferido'] = $register_data['ref'];
         }
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/registro/registro_api', $data);
+        // Use withVerify(true) in production or withVerify(false) only in development
+        $http = config('app.env') === 'production' 
+            ? Http::withOptions(['verify' => true])->withHeaders($headers)
+            : Http::withoutVerifying()->withHeaders($headers);
+
+        return $http->post(config('clau.api_url') . '/ext/registro/registro_api', $data);
     }
 
     public function getUserData ($token)
@@ -74,11 +80,14 @@ class ClauService
             'apikey' => $this->API_AUTH_KEY,
         ];
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/consultar_informacion_usuario_ext', [
-                'token' => $token
-            ]);
+        // Use withVerify(true) in production or withVerify(false) only in development
+        $http = config('app.env') === 'production' 
+            ? Http::withOptions(['verify' => true])->withHeaders($headers)
+            : Http::withoutVerifying()->withHeaders($headers);
+
+        return $http->post(config('clau.api_url') . '/ext/v2/consultar_informacion_usuario_ext', [
+            'token' => $token
+        ]);
     }
 
     public function getStorePoints ($token)
@@ -89,11 +98,14 @@ class ClauService
             'apikey' => $this->API_AUTH_KEY,
         ];
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/consulta_tienda_de_puntos_ext', [
-                'token' => $token
-            ]);
+        // Use withVerify(true) in production or withVerify(false) only in development
+        $http = config('app.env') === 'production' 
+            ? Http::withOptions(['verify' => true])->withHeaders($headers)
+            : Http::withoutVerifying()->withHeaders($headers);
+
+        return $http->post(config('clau.api_url') . '/ext/v2/consulta_tienda_de_puntos_ext', [
+            'token' => $token
+        ]);
     }
 
     public function buyProduct ($token, $productId)
@@ -104,12 +116,15 @@ class ClauService
             'apikey' => $this->API_AUTH_KEY,
         ];
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/compra_tienda_puntos_ext', [
-                'token' => $token,
-                'regaloId' => $productId
-            ]);
+        // Use withVerify(true) in production or withVerify(false) only in development
+        $http = config('app.env') === 'production' 
+            ? Http::withOptions(['verify' => true])->withHeaders($headers)
+            : Http::withoutVerifying()->withHeaders($headers);
+
+        return $http->post(config('clau.api_url') . '/ext/v2/compra_tienda_puntos_ext', [
+            'token' => $token,
+            'regaloId' => $productId
+        ]);
     }
 
     public function getGifts ($token)
@@ -120,11 +135,14 @@ class ClauService
             'apikey' => $this->API_AUTH_KEY,
         ];
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/consultar_regalos_usuario_ext', [
-                'token' => $token
-            ]);
+        // Use withVerify(true) in production or withVerify(false) only in development
+        $http = config('app.env') === 'production' 
+            ? Http::withOptions(['verify' => true])->withHeaders($headers)
+            : Http::withoutVerifying()->withHeaders($headers);
+
+        return $http->post(config('clau.api_url') . '/ext/v2/consultar_regalos_usuario_ext', [
+            'token' => $token
+        ]);
     }
 
     public function recovery ($email)
@@ -135,10 +153,13 @@ class ClauService
             'apikey' => $this->API_AUTH_KEY,
         ];
 
-        return Http::withoutVerifying()
-            ->withHeaders($headers)
-            ->post(config('clau.api_url') . '/ext/v2/solicitar_reset_password_ext', [
-                'email' => $email
-            ]);
+        // Use withVerify(true) in production or withVerify(false) only in development
+        $http = config('app.env') === 'production' 
+            ? Http::withOptions(['verify' => true])->withHeaders($headers)
+            : Http::withoutVerifying()->withHeaders($headers);
+
+        return $http->post(config('clau.api_url') . '/ext/v2/solicitar_reset_password_ext', [
+            'email' => $email
+        ]);
     }
 }

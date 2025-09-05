@@ -54,30 +54,45 @@ const closeIcon = document.getElementById('close-icon')
 const fullMenu = document.getElementById('full-menu')
 const menuContainerList = fullMenu?.querySelector('ul')
 
-InitHomeAnimations()
-InitMenuAnimation()
-InitMenuScroll()
-initMenuActions()
+// Only run animations if we're on pages with the required elements
+if (document.querySelector('.coffee-seeds-image') || document.querySelector('.coffee-cup')) {
+  InitHomeAnimations()
+}
+
+if (document.querySelector('.nav')) {
+  InitMenuAnimation()
+  InitMenuScroll()
+}
+
+if (document.getElementById('menu-icon') || document.getElementById('close-icon')) {
+  initMenuActions()
+}
 
 function InitHomeAnimations () {
   const coffeeSeedsImage = document.querySelector('.coffee-seeds-image');
+  const tl = gsap.timeline();
+  
+  // Only animate if element exists
+  if (coffeeSeedsImage) {
+    tl.to(coffeeSeedsImage, {
+      duration: 0.9,
+      y: -8,
+      repeat: -1,
+      yoyo: true,
+      ease: 'power1.inOut'
+    });
+  }
 
-  const tl = gsap.timeline()
-  tl.to(coffeeSeedsImage, {
-    duration: 0.9,
-    y: -8,
-    repeat: -1,
-    yoyo: true,
-    ease: 'power1.inOut'
-  })
-
-  const coffeeCup = document.querySelector('.coffee-cup')
-  tl.from(coffeeCup, {
-    opacity: 0,
-    duration: 0.9,
-    y: 100,
-    ease: 'power1.inOut'
-  })
+  const coffeeCup = document.querySelector('.coffee-cup');
+  // Only animate if element exists
+  if (coffeeCup) {
+    tl.from(coffeeCup, {
+      opacity: 0,
+      duration: 0.9,
+      y: 100,
+      ease: 'power1.inOut'
+    });
+  }
 }
 
 function InitMenuAnimation () {
@@ -139,20 +154,32 @@ function InitMenuScroll () {
 }
 
 function openMenu () {
-  fullMenu.classList.remove('hidden', 'md:flex')
-  fullMenu.classList.add('fixed', 'inset-0', 'bg-white', 'z-50', 'flex', 'flex-col', 'items-center', 'justify-center')
-  menuContainerList.classList.add('space-y-42')
-  menuContainerList.classList.remove('space-x-10')
-  document.body.classList.add('overflow-hidden')
+  if (fullMenu) {
+    fullMenu.classList.remove('hidden', 'md:flex')
+    fullMenu.classList.add('fixed', 'inset-0', 'bg-white', 'z-50', 'flex', 'flex-col', 'items-center', 'justify-center')
+    
+    if (menuContainerList) {
+      menuContainerList.classList.add('space-y-42')
+      menuContainerList.classList.remove('space-x-10')
+    }
+    
+    document.body.classList.add('overflow-hidden')
+  }
 }
 
 function closeMenu (e) {
   e.preventDefault()
-  fullMenu.classList.add('hidden', 'md:flex')
-  fullMenu.classList.remove('fixed', 'inset-0', 'bg-white', 'z-50', 'flex', 'flex-col', 'items-center', 'justify-center')
-  menuContainerList.classList.remove('space-y-42')
-  menuContainerList.classList.add('space-x-10')
-  document.body.classList.remove('overflow-hidden')
+  if (fullMenu) {
+    fullMenu.classList.add('hidden', 'md:flex')
+    fullMenu.classList.remove('fixed', 'inset-0', 'bg-white', 'z-50', 'flex', 'flex-col', 'items-center', 'justify-center')
+    
+    if (menuContainerList) {
+      menuContainerList.classList.remove('space-y-42')
+      menuContainerList.classList.add('space-x-10')
+    }
+    
+    document.body.classList.remove('overflow-hidden')
+  }
 }
 function initMenuActions () {
   if (menuIcon) {

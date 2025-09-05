@@ -7,6 +7,7 @@ use App\Services\ClauService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cookie;
 use Symfony\Component\HttpFoundation\Response;
 
 class ApiAuthController extends Controller
@@ -35,10 +36,14 @@ class ApiAuthController extends Controller
 
             if (isset($responseData['codigoRespuesta']) && $responseData['codigoRespuesta'] === 0) {
                 // Store the token in session
-                $request->session()->put('clauToken', $responseData['token']);
+                $token = $responseData['token'];
+                $request->session()->put('clauToken', $token);
                 
                 // Force the session to be saved immediately
                 $request->session()->save();
+                
+                // Also set as a cookie with SameSite=None for cross-domain use
+                Cookie::queue('clauToken', $token, 60, null, null, true, false, false, 'none');
                 
                 return response()->json([
                     'code' => 0,
@@ -96,7 +101,14 @@ class ApiAuthController extends Controller
                     $responseLoginData = $responseLogin->json();
 
                     if (isset($responseLoginData['codigoRespuesta']) && $responseLoginData['codigoRespuesta'] === 0) {
-                        $request->session()->put('clauToken', $responseLoginData['token']);
+                        $token = $responseLoginData['token'];
+                        $request->session()->put('clauToken', $token);
+                        
+                        // Force the session to be saved immediately
+                        $request->session()->save();
+                        
+                        // Also set as a cookie with SameSite=None for cross-domain use
+                        Cookie::queue('clauToken', $token, 60, null, null, true, false, false, 'none');
 
                         return response()->json([
                             'code' => 0,
