@@ -1,0 +1,254 @@
+name: tostomain
+region: nyc
+alerts:
+- rule: DEPLOYMENT_FAILED
+- rule: DOMAIN_FAILED
+databases:
+- cluster_name: db-mysql-nyc3-77617
+  db_name: defaultdb
+  db_user: doadmin
+  engine: MYSQL
+  name: db-mysql-nyc3-77617
+  production: true
+  version: "8"
+features:
+- buildpack-stack=ubuntu-22
+ingress:
+  rules:
+  - component:
+      name: tostomain
+    match:
+      authority:
+        exact: ""
+      path:
+        prefix: /
+services:
+- name: tostomain
+  environment_slug: php
+  instance_size_slug: apps-s-1vcpu-1gb
+  instance_count: 2
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: KircleR2/tostomain
+  source_dir: /
+  build_command: npm install && npm run production
+  run_command: heroku-php-apache2 public/
+  http_port: 8080
+  envs:
+  - key: DATABASE_URL
+    scope: RUN_TIME
+    value: ${db-mysql-nyc3-77617.DATABASE_URL}
+  - key: APP_NAME
+    value: "Tosto Coffee"
+    scope: RUN_AND_BUILD_TIME
+  - key: APP_ENV
+    value: local
+    scope: RUN_AND_BUILD_TIME
+  - key: APP_KEY
+    value: base64:2fTm8VgAVUnNjlV2zvmc0/44AsCdaunoBkNpduLIoPQ=
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+  - key: APP_DEBUG
+    value: "true"
+    scope: RUN_AND_BUILD_TIME
+  - key: APP_URL
+    value: https://www.tostocoffee.com
+    scope: RUN_AND_BUILD_TIME
+  - key: DB_CONNECTION
+    value: mysql
+    scope: RUN_AND_BUILD_TIME
+  - key: DB_HOST
+    value: ${db-mysql-nyc3-77617.HOSTNAME}
+    scope: RUN_AND_BUILD_TIME
+  - key: DB_PORT
+    value: ${db-mysql-nyc3-77617.PORT}
+    scope: RUN_AND_BUILD_TIME
+  - key: DB_DATABASE
+    value: ${db-mysql-nyc3-77617.DATABASE}
+    scope: RUN_AND_BUILD_TIME
+  - key: DB_USERNAME
+    value: ${db-mysql-nyc3-77617.USERNAME}
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+  - key: DB_PASSWORD
+    value: ${db-mysql-nyc3-77617.PASSWORD}
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+  - key: LOG_CHANNEL
+    value: stack
+    scope: RUN_AND_BUILD_TIME
+  - key: LOG_DEPRECATIONS_CHANNEL
+    value: null
+    scope: RUN_AND_BUILD_TIME
+  - key: LOG_LEVEL
+    value: debug
+    scope: RUN_AND_BUILD_TIME
+  - key: BROADCAST_DRIVER
+    value: log
+    scope: RUN_AND_BUILD_TIME
+  - key: CACHE_DRIVER
+    value: file
+    scope: RUN_AND_BUILD_TIME
+  - key: FILESYSTEM_DISK
+    value: local
+    scope: RUN_AND_BUILD_TIME
+  - key: QUEUE_CONNECTION
+    value: sync
+    scope: RUN_AND_BUILD_TIME
+      - key: SESSION_DRIVER
+        value: database
+        scope: RUN_AND_BUILD_TIME
+      - key: SESSION_LIFETIME
+        value: "1440"
+        scope: RUN_AND_BUILD_TIME
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+        scope: RUN_AND_BUILD_TIME
+      - key: SESSION_SAME_SITE
+        value: "none"
+        scope: RUN_AND_BUILD_TIME
+  - key: SESSION_LIFETIME
+    value: "120"
+    scope: RUN_AND_BUILD_TIME
+  - key: MEMCACHED_HOST
+    value: 127.0.0.1
+    scope: RUN_AND_BUILD_TIME
+  - key: REDIS_HOST
+    value: 127.0.0.1
+    scope: RUN_AND_BUILD_TIME
+  - key: REDIS_PASSWORD
+    value: null
+    scope: RUN_AND_BUILD_TIME
+  - key: REDIS_PORT
+    value: "6379"
+    scope: RUN_AND_BUILD_TIME
+  - key: MAIL_MAILER
+    value: smtp
+    scope: RUN_AND_BUILD_TIME
+  - key: MAIL_HOST
+    value: mailpit
+    scope: RUN_AND_BUILD_TIME
+  - key: MAIL_PORT
+    value: "1025"
+    scope: RUN_AND_BUILD_TIME
+  - key: MAIL_USERNAME
+    value: null
+    scope: RUN_AND_BUILD_TIME
+  - key: MAIL_PASSWORD
+    value: null
+    scope: RUN_AND_BUILD_TIME
+  - key: MAIL_ENCRYPTION
+    value: null
+    scope: RUN_AND_BUILD_TIME
+  - key: MAIL_FROM_ADDRESS
+    value: "hello@example.com"
+    scope: RUN_AND_BUILD_TIME
+  - key: MAIL_FROM_NAME
+    value: "${APP_NAME}"
+    scope: RUN_AND_BUILD_TIME
+  - key: AWS_ACCESS_KEY_ID
+    value: ""
+    scope: RUN_AND_BUILD_TIME
+  - key: AWS_SECRET_ACCESS_KEY
+    value: ""
+    scope: RUN_AND_BUILD_TIME
+  - key: AWS_DEFAULT_REGION
+    value: us-east-1
+    scope: RUN_AND_BUILD_TIME
+  - key: AWS_BUCKET
+    value: ""
+    scope: RUN_AND_BUILD_TIME
+  - key: AWS_USE_PATH_STYLE_ENDPOINT
+    value: "false"
+    scope: RUN_AND_BUILD_TIME
+  - key: PUSHER_APP_ID
+    value: ""
+    scope: RUN_AND_BUILD_TIME
+  - key: PUSHER_APP_KEY
+    value: ""
+    scope: RUN_AND_BUILD_TIME
+  - key: PUSHER_APP_SECRET
+    value: ""
+    scope: RUN_AND_BUILD_TIME
+  - key: PUSHER_HOST
+    value: ""
+    scope: RUN_AND_BUILD_TIME
+  - key: PUSHER_PORT
+    value: "443"
+    scope: RUN_AND_BUILD_TIME
+  - key: PUSHER_SCHEME
+    value: https
+    scope: RUN_AND_BUILD_TIME
+  - key: PUSHER_APP_CLUSTER
+    value: mt1
+    scope: RUN_AND_BUILD_TIME
+  - key: VITE_PUSHER_APP_KEY
+    value: "${PUSHER_APP_KEY}"
+    scope: RUN_AND_BUILD_TIME
+  - key: VITE_PUSHER_HOST
+    value: "${PUSHER_HOST}"
+    scope: RUN_AND_BUILD_TIME
+  - key: VITE_PUSHER_PORT
+    value: "${PUSHER_PORT}"
+    scope: RUN_AND_BUILD_TIME
+  - key: VITE_PUSHER_SCHEME
+    value: "${PUSHER_SCHEME}"
+    scope: RUN_AND_BUILD_TIME
+  - key: VITE_PUSHER_APP_CLUSTER
+    value: "${PUSHER_APP_CLUSTER}"
+    scope: RUN_AND_BUILD_TIME
+  - key: CLAU_API_URL
+    value: "https://api2.clau.io"
+    scope: RUN_AND_BUILD_TIME
+  - key: CLAU_API_POS_KEY
+    value: "POS-v3R2rdXO7VuUPUYX98UQfE7wsb7mXp0gvq3bO6faaF5I"
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+  - key: CLAU_API_AUTH_KEY
+    value: "EXT-8bwfCRhbZjNqd8y2QL7Db6XJ8r9YWRftBujqL2LXzbwG"
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+  - key: CLAU_API_KEY_PROVIDER
+    value: "AIzaSyC5DEYDdokM-OJ46FpPCJb88YgcRFWS9vM"
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+  - key: CLAU_APPID
+    value: "166"
+    scope: RUN_AND_BUILD_TIME
+  - key: CLAU_ORIGIN
+    value: "web_tosto"
+    scope: RUN_AND_BUILD_TIME
+  - key: CLAU_WEBHOOK_ORIGIN
+    value: "clauhook"
+    scope: RUN_AND_BUILD_TIME
+  - key: CLAU_WEBHOOK_KEY
+    value: "CLau-a6B5M9YQXY2cnUh!Mc8dQ%9$%75Se^5SodP$Hh"
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+  - key: ZOHO_API_URL
+    value: "https://www.zohoapis.com/crm/v5"
+    scope: RUN_AND_BUILD_TIME
+  - key: ZOHO_API_REFRESH_URL
+    value: "https://accounts.zoho.com/oauth/v2/token"
+    scope: RUN_AND_BUILD_TIME
+  - key: ZOHO_CLIENT_ID
+    value: "1000.TZR9IAFNICUYJJS63E1PX9NT8XOE8N"
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+  - key: ZOHO_CLIENT_SECRET
+    value: "aa661b382fd9236638cb6eeaeb7fe0ae93a17b7b9e"
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+  - key: ZOHO_REFRESH_TOKEN
+    value: "1000.1c2d6d328b45e325719d45fc35ec45d8.b3fcb5f55b697c063130941667f111eb"
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+  - key: ZOHO_AUTH_TOKEN
+    value: "1000.18e4b0138f4bf37d229f615c501e24a4.d3d177116e4251c6b1a00de2b59660bf"
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+  - key: ROLLBAR_TOKEN
+    value: 886f17c66149452487c5465f37bba468
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
